@@ -1,1 +1,6 @@
-ewogICJpbXBvcnRzIjogewogICAgIkBzdXBhYmFzZS9zdXBhYmFzZS1qcyI6ICJodHRwczovL2VzbS5zaC9Ac3VwYWJhc2Uvc3VwYWJhc2UtanNAMiIKICB9Cn0KCg==
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
+
