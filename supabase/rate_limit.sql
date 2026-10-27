@@ -1,1 +1,56 @@
-Y3JlYXRlIHRhYmxlIGlmIG5vdCBleGlzdHMgcHVibGljLmNoYXRfcmF0ZV9saW1pdHMgKAogIGJ1Y2tldCB0ZXh0IHByaW1hcnkga2V5LAogIHJlcXVlc3RfY291bnQgaW50ZWdlciBub3QgbnVsbCBkZWZhdWx0IDAsCiAgcmVzZXRfYXQgdGltZXN0YW1wdHogbm90IG51bGwKKTsKCmFsdGVyIHRhYmxlIHB1YmxpYy5jaGF0X3JhdGVfbGltaXRzIGVuYWJsZSByb3cgbGV2ZWwgc2VjdXJpdHk7CnJldm9rZSBhbGwgb24gdGFibGUgcHVibGljLmNoYXRfcmF0ZV9saW1pdHMgZnJvbSBhbm9uLCBhdXRoZW50aWNhdGVkOwoKY3JlYXRlIG9yIHJlcGxhY2UgZnVuY3Rpb24gcHVibGljLmNvbnN1bWVfY2hhdF9yYXRlX2xpbWl0KAogIHBfYnVja2V0IHRleHQsCiAgcF9saW1pdCBpbnRlZ2VyLAogIHBfd2luZG93X3NlY29uZHMgaW50ZWdlcgopCnJldHVybnMgYm9vbGVhbgpsYW5ndWFnZSBwbHBnc3FsCnNlY3VyaXR5IGRlZmluZXIKc2V0IHNlYXJjaF9wYXRoID0gcHVibGljCmFzICQkCmRlY2xhcmUKICBjdXJyZW50X2NvdW50IGludGVnZXI7CiAgY3VycmVudF9yZXNldCB0aW1lc3RhbXB0ejsKYmVnaW4KICBpbnNlcnQgaW50byBwdWJsaWMuY2hhdF9yYXRlX2xpbWl0cyAoYnVja2V0LCByZXF1ZXN0X2NvdW50LCByZXNldF9hdCkKICB2YWx1ZXMgKHBfYnVja2V0LCAwLCBub3coKSArIG1ha2VfaW50ZXJ2YWwoc2VjcyA9PiBwX3dpbmRvd19zZWNvbmRzKSkKICBvbiBjb25mbGljdCAoYnVja2V0KSBkbyBub3RoaW5nOwoKICBzZWxlY3QgcmVxdWVzdF9jb3VudCwgcmVzZXRfYXQKICAgIGludG8gY3VycmVudF9jb3VudCwgY3VycmVudF9yZXNldAogICAgZnJvbSBwdWJsaWMuY2hhdF9yYXRlX2xpbWl0cwogICB3aGVyZSBidWNrZXQgPSBwX2J1Y2tldAogICBmb3IgdXBkYXRlOwoKICBpZiBjdXJyZW50X3Jlc2V0IDw9IG5vdygpIHRoZW4KICAgIHVwZGF0ZSBwdWJsaWMuY2hhdF9yYXRlX2xpbWl0cwogICAgICAgc2V0IHJlcXVlc3RfY291bnQgPSAxLAogICAgICAgICAgIHJlc2V0X2F0ID0gbm93KCkgKyBtYWtlX2ludGVydmFsKHNlY3MgPT4gcF93aW5kb3dfc2Vjb25kcykKICAgICB3aGVyZSBidWNrZXQgPSBwX2J1Y2tldDsKICAgIHJldHVybiB0cnVlOwogIGVuZCBpZjsKCiAgaWYgY3VycmVudF9jb3VudCA+PSBwX2xpbWl0IHRoZW4KICAgIHJldHVybiBmYWxzZTsKICBlbmQgaWY7CgogIHVwZGF0ZSBwdWJsaWMuY2hhdF9yYXRlX2xpbWl0cwogICAgIHNldCByZXF1ZXN0X2NvdW50ID0gcmVxdWVzdF9jb3VudCArIDEKICAgd2hlcmUgYnVja2V0ID0gcF9idWNrZXQ7CgogIHJldHVybiB0cnVlOwplbmQ7CiQkOwoKcmV2b2tlIGFsbCBvbiBmdW5jdGlvbiBwdWJsaWMuY29uc3VtZV9jaGF0X3JhdGVfbGltaXQodGV4dCwgaW50ZWdlciwgaW50ZWdlcikgZnJvbSBwdWJsaWM7CmdyYW50IGV4ZWN1dGUgb24gZnVuY3Rpb24gcHVibGljLmNvbnN1bWVfY2hhdF9yYXRlX2xpbWl0KHRleHQsIGludGVnZXIsIGludGVnZXIpIHRvIHNlcnZpY2Vfcm9sZTsKCg==
+create table if not exists public.chat_rate_limits (
+  bucket text primary key,
+  request_count integer not null default 0,
+  reset_at timestamptz not null
+);
+
+alter table public.chat_rate_limits enable row level security;
+revoke all on table public.chat_rate_limits from anon, authenticated;
+
+create or replace function public.consume_chat_rate_limit(
+  p_bucket text,
+  p_limit integer,
+  p_window_seconds integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_count integer;
+  current_reset timestamptz;
+begin
+  insert into public.chat_rate_limits (bucket, request_count, reset_at)
+  values (p_bucket, 0, now() + make_interval(secs => p_window_seconds))
+  on conflict (bucket) do nothing;
+
+  select request_count, reset_at
+    into current_count, current_reset
+    from public.chat_rate_limits
+   where bucket = p_bucket
+   for update;
+
+  if current_reset <= now() then
+    update public.chat_rate_limits
+       set request_count = 1,
+           reset_at = now() + make_interval(secs => p_window_seconds)
+     where bucket = p_bucket;
+    return true;
+  end if;
+
+  if current_count >= p_limit then
+    return false;
+  end if;
+
+  update public.chat_rate_limits
+     set request_count = request_count + 1
+   where bucket = p_bucket;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.consume_chat_rate_limit(text, integer, integer) from public;
+grant execute on function public.consume_chat_rate_limit(text, integer, integer) to service_role;
+
