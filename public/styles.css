@@ -257,7 +257,7 @@ img {
 .hero-card {
   position: relative;
   overflow: hidden;
-  padding: 22px;
+  padding: 18px 20px;
   border: 1px solid rgba(92, 199, 255, 0.2);
   border-radius: 28px;
   color: white;
@@ -286,20 +286,6 @@ img {
 .hero-heading {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.hero-logo {
-  flex: 0 0 auto;
-  width: clamp(82px, 24vw, 112px);
-  height: clamp(82px, 24vw, 112px);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 26px;
-  object-fit: cover;
-  background: white;
-  box-shadow: 0 14px 30px rgba(0, 13, 51, 0.26);
 }
 
 .eyebrow {
@@ -317,20 +303,20 @@ img {
 }
 
 .hero-card h2 {
-  margin: 9px 0 0;
-  font-size: clamp(28px, 8vw, 42px);
-  line-height: 1.03;
-  letter-spacing: -1.4px;
+  margin: 8px 0 0;
+  font-size: clamp(26px, 5.5vw, 34px);
+  line-height: 1.06;
+  letter-spacing: -1px;
 }
 
 .hero-copy {
   position: relative;
   z-index: 1;
   max-width: 600px;
-  margin: 18px 0 20px;
+  margin: 11px 0 15px;
   color: rgba(239, 248, 255, 0.8);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .primary-actions {
@@ -343,8 +329,8 @@ img {
 
 .action-card {
   min-width: 0;
-  min-height: 76px;
-  padding: 12px 10px;
+  min-height: 62px;
+  padding: 9px 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
   display: flex;
@@ -1010,7 +996,7 @@ input:focus {
   }
 
   .hero-card {
-    padding: 28px;
+    padding: 22px;
   }
 
   .composer {
@@ -1089,44 +1075,49 @@ input:focus {
   }
 
   .hero-card {
-    padding: 18px 16px 16px;
+    padding: 14px 14px 13px;
     border-radius: 24px;
   }
 
   .hero-heading {
-    gap: 12px;
-  }
-
-  .hero-logo {
-    border-radius: 21px;
+    gap: 0;
   }
 
   .hero-card h2 {
-    font-size: clamp(27px, 7.5vw, 31px);
-    letter-spacing: -0.9px;
+    margin-top: 6px;
+    font-size: clamp(24px, 5.5vw, 28px);
+    letter-spacing: -0.7px;
   }
 
   .hero-copy {
-    margin-top: 14px;
-    font-size: 12.5px;
+    margin: 9px 0 12px;
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .primary-actions {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .action-card {
-    min-height: 66px;
-    padding: 10px;
-  }
-
+  .action-card,
   .action-card.action-primary {
-    grid-column: 1 / -1;
+    grid-column: auto;
+    min-height: 62px;
+    padding: 7px 5px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
   }
 
   .action-icon {
-    width: 31px;
-    height: 31px;
+    width: 27px;
+    height: 27px;
+    border-radius: 9px;
+  }
+
+  .action-card small {
+    display: none;
   }
 
   .prompt-section {
@@ -1194,15 +1185,7 @@ input:focus {
   }
 
   .hero-heading {
-    display: grid;
-    grid-template-columns: 1fr;
-    align-items: flex-start;
-    gap: 11px;
-  }
-
-  .hero-logo {
-    width: 66px;
-    height: 66px;
+    display: block;
   }
 
   .action-card small {
