@@ -1,12 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const COZE_API_BASE = Deno.env.get("COZE_API_BASE") || "https://api.coze.cn";
-const COZE_API_TOKEN = Deno.env.get("COZE_API_TOKEN") || "";
+const COZE_API_TOKEN_DIRECT = Deno.env.get("COZE_API_TOKEN") || "";
+const COZE_API_TOKEN_ALIAS = Deno.env.get("agrilingua-web") || "";
+const COZE_API_TOKEN = COZE_API_TOKEN_ALIAS || COZE_API_TOKEN_DIRECT;
 const COZE_BOT_ID = Deno.env.get("COZE_BOT_ID") || "";
 const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "*";
 const RATE_LIMIT_ENABLED = (Deno.env.get("RATE_LIMIT_ENABLED") || "false") === "true";
 const RATE_LIMIT_PER_DAY = Number(Deno.env.get("RATE_LIMIT_PER_DAY") || "60");
-const COZE_TIMEOUT_MS = Number(Deno.env.get("COZE_TIMEOUT_MS") || "110000");
+const COZE_TIMEOUT_MS = Number(Deno.env.get("COZE_TIMEOUT_MS") || "140000");
 
 const MAX_TEXT_LENGTH = 3000;
 const MAX_IMAGES = 2;
