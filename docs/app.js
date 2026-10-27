@@ -36,7 +36,9 @@
     busy: false,
     recognition: null,
     progressTimer: 0,
-    installPrompt: null
+    installPrompt: null,
+    controller: null,
+    requestId: 0
   };
 
   const prompts = {
@@ -65,7 +67,8 @@
     assistant: "AgriLingua",
     emptyInput: "Enter a question or add at least one photo.",
     tooManyImages: "You can add at most two photos.",
-    invalidImage: "Please choose JPG, PNG, or WebP images only.",
+    invalidImage: "Please choose JPG, PNG, WebP, HEIC, HEIF, or AVIF images only.",
+    heicUnavailable: "This browser cannot convert that HEIC/HEIF photo. Choose a JPG or PNG, or export the photo as JPG first.",
     imageTooLarge: "Each photo must be smaller than 8 MB.",
     networkError: "The assistant is unavailable. Please try again.",
     configError: "Supabase is not configured. Edit public/config.js.",
@@ -307,37 +310,105 @@
     });
   }
 
-  async function compressImage(file) {
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+  function imageKind(file) {
+    const type = String(file.type || "").toLowerCase().split(";")[0];
+    const extension = String(file.name || "").split(".").pop().toLowerCase();
+    const supported = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/avif"
+    ];
+    const supportedExtensions = [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "heic",
+      "heif",
+      "avif"
+    ];
+
+    if (!supported.includes(type) && !supportedExtensions.includes(extension)) {
       throw new Error(currentText().invalidImage);
     }
+
+    const needsTranscode = [
+      "image/heic",
+      "image/heif",
+      "image/avif",
+      "heic",
+      "heif",
+      "avif"
+    ].includes(type) || ["heic", "heif", "avif"].includes(extension);
+
+    return { needsTranscode };
+  }
+
+  async function decodeImage(file) {
+    if (typeof createImageBitmap === "function") {
+      try {
+        return await createImageBitmap(file);
+      } catch {
+        // Safari may not expose HEIC to createImageBitmap but can decode it in an image element.
+      }
+    }
+
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    try {
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+        image.src = url;
+      });
+      return image;
+    } finally {
+      if (image.complete) URL.revokeObjectURL(url);
+      else image.addEventListener("loadend", () => URL.revokeObjectURL(url), { once: true });
+    }
+  }
+
+  async function compressImage(file) {
     if (file.size > maxUploadBytes) {
       throw new Error(currentText().imageTooLarge);
     }
 
-    if (file.size < 900000) {
+    const { needsTranscode } = imageKind(file);
+    if (!needsTranscode && file.size < 900000) {
       return file;
     }
 
-    if (typeof createImageBitmap !== "function") {
-      return file;
+    let image;
+    try {
+      image = await decodeImage(file);
+    } catch {
+      throw new Error(needsTranscode ? currentText().heicUnavailable : currentText().invalidImage);
     }
 
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, maxImageSide / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const sourceWidth = image.width || image.naturalWidth;
+    const sourceHeight = image.height || image.naturalHeight;
+    if (!sourceWidth || !sourceHeight) {
+      if (typeof image.close === "function") image.close();
+      throw new Error(currentText().invalidImage);
+    }
+
+    const scale = Math.min(1, maxImageSide / Math.max(sourceWidth, sourceHeight));
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d", { alpha: false });
-    context.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close();
+    context.drawImage(image, 0, 0, width, height);
+    if (typeof image.close === "function") image.close();
 
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.78)
     );
-    if (!blob) return file;
+    if (!blob) throw new Error(currentText().invalidImage);
     return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
       type: "image/jpeg"
     });
@@ -345,6 +416,9 @@
 
   async function addFiles(files) {
     const incoming = Array.from(files || []);
+    imageInput.value = "";
+    cameraInput.value = "";
+
     if (state.images.length + incoming.length > maxImages) {
       setStatus(currentText().tooManyImages, true);
       return;
@@ -361,8 +435,6 @@
         setStatus(error.message || currentText().invalidImage, true);
       }
     }
-    imageInput.value = "";
-    cameraInput.value = "";
     renderImagePreview();
   }
 
@@ -437,6 +509,10 @@
   }
 
   function clearConversation() {
+    state.requestId += 1;
+    state.controller?.abort();
+    state.controller = null;
+    state.busy = false;
     state.conversationId = "";
     state.images.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     state.images = [];
@@ -447,6 +523,9 @@
     setStatus("");
     resizeTextarea();
     welcomePanel.hidden = false;
+    sendButton.disabled = false;
+    sendButton.setAttribute("aria-label", currentText().send);
+    newChatButton.setAttribute("aria-label", "Start a new chat");
     questionInput.focus();
   }
 
@@ -574,9 +653,11 @@
       return;
     }
 
+    const requestId = ++state.requestId;
     state.busy = true;
     sendButton.disabled = true;
     sendButton.setAttribute("aria-label", currentText().sending);
+    newChatButton.setAttribute("aria-label", "Cancel analysis and start a new chat");
     setStatus("");
     welcomePanel.hidden = true;
 
@@ -602,9 +683,12 @@
       crypto.randomUUID().replaceAll("-", "");
     localStorage.setItem("agrilingua_client_id", clientId);
 
+    const controller = new AbortController();
+    state.controller = controller;
+    let timeoutId = 0;
+
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 150000);
+      timeoutId = setTimeout(() => controller.abort(), 150000);
       const response = await fetch(
         `${config.supabaseUrl}/functions/v1/${config.functionName || "agrilingua"}`,
         {
@@ -618,15 +702,14 @@
           signal: controller.signal
         }
       );
-      clearTimeout(timeout);
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(payload.error || currentText().networkError);
       }
+      if (requestId !== state.requestId) return;
 
       state.conversationId = payload.conversationId || "";
-      stopProgress();
       typing.remove();
       setStatus("");
       createMessage("assistant", payload.reply || currentText().networkError, [], false);
@@ -636,7 +719,7 @@
       questionInput.value = "";
       resizeTextarea();
     } catch (error) {
-      stopProgress();
+      if (requestId !== state.requestId) return;
       typing.remove();
       const message =
         error && error.name === "AbortError"
@@ -645,9 +728,15 @@
       createMessage("assistant", message, [], true);
       setStatus(message, true);
     } finally {
-      state.busy = false;
-      sendButton.disabled = false;
-      sendButton.setAttribute("aria-label", currentText().send);
+      stopProgress();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (state.controller === controller) state.controller = null;
+      if (requestId === state.requestId) {
+        state.busy = false;
+        sendButton.disabled = false;
+        sendButton.setAttribute("aria-label", currentText().send);
+        newChatButton.setAttribute("aria-label", "Start a new chat");
+      }
     }
   }
 

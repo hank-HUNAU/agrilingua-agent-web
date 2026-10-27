@@ -169,7 +169,7 @@ img {
 .install-button,
 .new-chat-button,
 .language-control {
-  min-height: 38px;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
@@ -210,7 +210,7 @@ img {
 
 .language-control select {
   max-width: 102px;
-  height: 36px;
+  height: 42px;
   border: 0;
   outline: 0;
   background: transparent;
@@ -220,7 +220,7 @@ img {
 }
 
 .new-chat-button {
-  width: 38px;
+  width: 44px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -621,11 +621,13 @@ img {
 
 .audio-wrap audio {
   width: 100%;
-  height: 38px;
+  height: 44px;
 }
 
 .audio-download {
   display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-top: 7px;
   color: var(--blue);
   font-size: 12px;
@@ -656,8 +658,8 @@ img {
 
 .tool-button {
   flex: 0 0 auto;
-  min-height: 30px;
-  padding: 0 9px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -699,8 +701,8 @@ img {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 25px;
-  height: 25px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -886,8 +888,8 @@ input:focus {
 }
 
 .dialog-close {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 50%;
@@ -1067,19 +1069,19 @@ input:focus {
   }
 
   .language-control {
-    min-height: 36px;
+    min-height: 44px;
     padding-left: 6px;
   }
 
   .language-control select {
     max-width: 82px;
-    height: 34px;
+    height: 42px;
     font-size: 11px;
   }
 
   .new-chat-button {
-    width: 36px;
-    min-height: 36px;
+    width: 44px;
+    min-height: 44px;
   }
 
   .app-content {
@@ -1178,7 +1180,7 @@ input:focus {
   }
 
   .install-button {
-    width: 36px;
+    width: 44px;
     padding: 0;
   }
 
@@ -1187,7 +1189,7 @@ input:focus {
   }
 
   .language-control select {
-    max-width: 68px;
+    max-width: 70px;
     font-size: 10px;
   }
 

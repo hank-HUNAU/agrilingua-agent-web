@@ -3,7 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const COZE_API_BASE = Deno.env.get("COZE_API_BASE") || "https://api.coze.cn";
 const COZE_API_TOKEN_DIRECT = Deno.env.get("COZE_API_TOKEN") || "";
 const COZE_API_TOKEN_ALIAS = Deno.env.get("agrilingua-web") || "";
-const COZE_API_TOKEN = COZE_API_TOKEN_ALIAS || COZE_API_TOKEN_DIRECT;
+const COZE_API_TOKENS = [
+  ...new Set(
+    [COZE_API_TOKEN_DIRECT, COZE_API_TOKEN_ALIAS].filter(Boolean)
+  )
+];
 const COZE_BOT_ID = Deno.env.get("COZE_BOT_ID") || "";
 const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "*";
 const RATE_LIMIT_ENABLED = (Deno.env.get("RATE_LIMIT_ENABLED") || "false") === "true";
@@ -13,6 +17,7 @@ const COZE_TIMEOUT_MS = Number(Deno.env.get("COZE_TIMEOUT_MS") || "140000");
 const MAX_TEXT_LENGTH = 3000;
 const MAX_IMAGES = 2;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+let preferredTokenIndex = 0;
 
 type CozeMessage = {
   role?: string;
@@ -57,7 +62,7 @@ function failure(req: Request, status: number, message: string): Response {
 }
 
 function requireConfiguration(): void {
-  if (!COZE_API_TOKEN || !COZE_BOT_ID) {
+  if (COZE_API_TOKENS.length === 0 || !COZE_BOT_ID) {
     throw new Error("服务端尚未配置扣子访问令牌或智能体 ID。");
   }
 }
@@ -104,20 +109,51 @@ async function cozeFetch(
   init: RequestInit,
   timeoutMs = 30000
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const tokenOrder = [
+    preferredTokenIndex,
+    ...COZE_API_TOKENS.map((_, index) => index).filter(
+      (index) => index !== preferredTokenIndex
+    )
+  ];
+
+  for (let position = 0; position < tokenOrder.length; position += 1) {
+    const tokenIndex = tokenOrder[position];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let response: Response;
+
+    try {
+      response = await fetch(`${COZE_API_BASE}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${COZE_API_TOKENS[tokenIndex]}`,
+          ...(init.headers || {})
+        },
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (position + 1 < tokenOrder.length && (await shouldTryNextToken(response))) {
+      continue;
+    }
+
+    preferredTokenIndex = tokenIndex;
+    return response;
+  }
+
+  throw new Error("扣子访问令牌不可用。");
+}
+
+async function shouldTryNextToken(response: Response): Promise<boolean> {
+  if (!response.ok) return true;
 
   try {
-    return await fetch(`${COZE_API_BASE}${path}`, {
-      ...init,
-      headers: {
-        Authorization: `Bearer ${COZE_API_TOKEN}`,
-        ...(init.headers || {})
-      },
-      signal: controller.signal
-    });
-  } finally {
-    clearTimeout(timer);
+    const payload = await response.clone().json();
+    return typeof payload?.code === "number" && payload.code !== 0;
+  } catch {
+    return false;
   }
 }
 
@@ -272,9 +308,16 @@ async function enforceRateLimit(req: Request, userId: string): Promise<void> {
     throw new Error("限流服务未配置。");
   }
 
-  const forwarded = req.headers.get("x-forwarded-for") || "";
-  const ip = forwarded.split(",")[0].trim() || "unknown";
-  const bucket = ip;
+  const trustedIp =
+    req.headers.get("x-real-ip")?.trim() ||
+    req.headers.get("cf-connecting-ip")?.trim() ||
+    "";
+  const forwardedIp =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+  const normalizedIp = (trustedIp || forwardedIp)
+    .replace(/[^0-9a-fA-F:.]/g, "")
+    .slice(0, 64);
+  const bucket = normalizedIp ? `ip:${normalizedIp}` : `client:${userId}`;
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false }
   });

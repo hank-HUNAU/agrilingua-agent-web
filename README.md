@@ -157,10 +157,12 @@ window.AGRI_CONFIG = {
 
 ```text
 Settings → Pages → Build and deployment
-Source = GitHub Actions
+Source = Deploy from a branch
+Branch = gh-pages / (root)
 ```
 
-仓库中的 `.github/workflows/pages.yml` 会自动部署 `public` 目录。
+`main` 分支保存源码。发布前将 `public` 中的静态文件同步到 `docs`，再将 `docs`
+的内容推送到 `gh-pages` 分支。当前项目不依赖 GitHub Actions 自动部署。
 
 部署后打开：
 
@@ -253,4 +255,7 @@ audio_url 语音播放
 ```
 
 浏览器语音输入使用 Web Speech API。支持情况取决于手机浏览器；不支持时会自动隐藏麦克风按钮，文字和图片仍可正常使用。
+
+图片支持 JPG、PNG、WebP、HEIC/HEIF 和 AVIF。浏览器能够解码 HEIC/HEIF 时会自动转换为 JPEG；
+若浏览器本身无法解码该格式，会提示用户改用 JPG 或先将照片导出为 JPG。
 
