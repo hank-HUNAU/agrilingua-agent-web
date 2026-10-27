@@ -307,7 +307,7 @@ Deno.serve(async (req: Request) => {
 
     const form = await req.formData();
     const text = String(form.get("text") || "").trim();
-    const language = String(form.get("language") || "zh").toLowerCase();
+    const language = String(form.get("language") || "en").toLowerCase();
     const country = String(form.get("country") || "").trim();
     const stage = String(form.get("stage") || "").trim();
     const weather = String(form.get("weather") || "").trim();

@@ -11,7 +11,9 @@
   const questionInput = document.getElementById("question-input");
   const sendButton = document.getElementById("send-button");
   const imageInput = document.getElementById("image-input");
+  const cameraInput = document.getElementById("camera-input");
   const micButton = document.getElementById("mic-button");
+  const homeVoiceButton = document.getElementById("home-voice-button");
   const imagePreview = document.getElementById("image-preview");
   const languageInput = document.getElementById("language-input");
   const countryInput = document.getElementById("country-input");
@@ -21,12 +23,20 @@
   const newChatButton = document.getElementById("new-chat-button");
   const quickPrompts = document.getElementById("quick-prompts");
   const messageTemplate = document.getElementById("message-template");
+  const contextButton = document.getElementById("context-button");
+  const contextDialog = document.getElementById("context-dialog");
+  const contextClose = document.getElementById("context-close");
+  const contextSave = document.getElementById("context-save");
+  const contextSummary = document.getElementById("context-summary");
+  const installButton = document.getElementById("install-button");
 
   const state = {
     images: [],
     conversationId: "",
     busy: false,
-    recognition: null
+    recognition: null,
+    progressTimer: 0,
+    installPrompt: null
   };
 
   const prompts = {
@@ -48,55 +58,23 @@
   };
 
   const uiText = {
-    zh: {
-      placeholder: "输入葡萄种植或病害问题，也可以上传照片……",
-      send: "发送",
-      sending: "分析中…",
-      you: "你",
-      assistant: "神农语智",
-      emptyInput: "请输入问题或上传至少一张图片。",
-      tooManyImages: "最多上传两张照片。",
-      invalidImage: "请只选择 JPG、PNG 或 WebP 图片。",
-      imageTooLarge: "单张照片不能超过 8 MB。",
-      networkError: "暂时无法连接智能体，请稍后再试。",
-      configError: "网页尚未配置 Supabase 地址。请编辑 public/config.js。",
-      audio: "语音说明",
-      audioOpen: "打开语音链接"
-    },
-    en: {
-      placeholder: "Ask about grape growing or upload a leaf photo…",
-      send: "Send",
-      sending: "Analyzing…",
-      you: "You",
-      assistant: "AgriLingua",
-      emptyInput: "Enter a question or upload at least one image.",
-      tooManyImages: "You can upload at most two photos.",
-      invalidImage: "Please select JPG, PNG, or WebP images only.",
-      imageTooLarge: "Each image must be smaller than 8 MB.",
-      networkError: "The assistant is unavailable. Please try again.",
-      configError: "Supabase is not configured. Edit public/config.js.",
-      audio: "Voice answer",
-      audioOpen: "Open audio"
-    },
-    ja: {
-      placeholder: "ブドウ栽培や病害について質問するか、葉の写真を送ってください…",
-      send: "送信",
-      sending: "分析中…",
-      you: "あなた",
-      assistant: "AgriLingua",
-      emptyInput: "質問を入力するか、画像を1枚以上添付してください。",
-      tooManyImages: "写真は最大2枚までです。",
-      invalidImage: "JPG、PNG、WebP画像を選択してください。",
-      imageTooLarge: "1枚の画像は8 MB以下にしてください。",
-      networkError: "現在接続できません。後でもう一度お試しください。",
-      configError: "Supabaseが設定されていません。public/config.jsを編集してください。",
-      audio: "音声による説明",
-      audioOpen: "音声を開く"
-    }
+    placeholder: "Ask about grape growing or upload a leaf photo…",
+    send: "Send",
+    sending: "Analyzing…",
+    you: "You",
+    assistant: "AgriLingua",
+    emptyInput: "Enter a question or add at least one photo.",
+    tooManyImages: "You can add at most two photos.",
+    invalidImage: "Please choose JPG, PNG, or WebP images only.",
+    imageTooLarge: "Each photo must be smaller than 8 MB.",
+    networkError: "The assistant is unavailable. Please try again.",
+    configError: "Supabase is not configured. Edit public/config.js.",
+    audio: "Voice answer",
+    audioOpen: "Open audio"
   };
 
   function currentText() {
-    return uiText[languageInput.value] || uiText.zh;
+    return uiText;
   }
 
   function setStatus(message, isError) {
@@ -213,7 +191,7 @@
     const imageBox = node.querySelector(".message-images");
     for (const image of images || []) {
       const img = document.createElement("img");
-      img.alt = "用户上传的葡萄照片";
+      img.alt = "Uploaded grape photo";
       img.src = image;
       imageBox.appendChild(img);
     }
@@ -237,16 +215,59 @@
   }
 
   function createTypingMessage() {
-    const node = createMessage("assistant", "正在分析…", [], false);
+    const node = createMessage("assistant", "Analyzing…", [], false);
     node.querySelector(".message-body").innerHTML =
-      '<div class="typing" aria-label="正在分析"><span></span><span></span><span></span></div>';
+      '<div class="typing-wrap"><div class="typing" aria-hidden="true"><span></span><span></span><span></span></div><span class="typing-stage">Preparing your request…</span></div>';
     return node;
+  }
+
+  function setTypingStage(node, message) {
+    const stage = node.querySelector(".typing-stage");
+    if (stage) stage.textContent = message;
+    setStatus(message, false);
+  }
+
+  function startProgress(node, hasImages) {
+    const stages = hasImages
+      ? [
+          [0, "Uploading and preparing your photos…"],
+          [3500, "Checking leaf color, texture, and visible lesions…"],
+          [14000, "Reviewing grape field guidance…"],
+          [32000, "Preparing today's actions and the 7-day follow-up…"],
+          [72000, "Finishing the recommendation and voice answer…"]
+        ]
+      : [
+          [0, "Reviewing your question…"],
+          [3500, "Checking practical grape-growing guidance…"],
+          [14000, "Preparing a concise field answer…"],
+          [32000, "Finishing the answer and voice response…"]
+        ];
+    const startedAt = Date.now();
+    let currentStage = 0;
+
+    clearInterval(state.progressTimer);
+    setTypingStage(node, stages[0][1]);
+    state.progressTimer = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      while (
+        currentStage + 1 < stages.length &&
+        elapsed >= stages[currentStage + 1][0]
+      ) {
+        currentStage += 1;
+        setTypingStage(node, stages[currentStage][1]);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(state.progressTimer);
+      state.progressTimer = 0;
+    };
   }
 
   function renderQuickPrompts() {
     quickPrompts.replaceChildren();
     const language = languageInput.value;
-    for (const prompt of prompts[language] || prompts.zh) {
+    for (const prompt of prompts[language] || prompts.en) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "quick-prompt";
@@ -259,7 +280,7 @@
       quickPrompts.appendChild(button);
     }
     questionInput.placeholder = currentText().placeholder;
-    sendButton.textContent = currentText().send;
+    sendButton.setAttribute("aria-label", currentText().send);
   }
 
   function renderImagePreview() {
@@ -271,11 +292,11 @@
       item.className = "preview-item";
       const img = document.createElement("img");
       img.src = entry.previewUrl;
-      img.alt = `待上传照片 ${index + 1}`;
+      img.alt = `Photo ${index + 1} ready to upload`;
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "×";
-      remove.setAttribute("aria-label", `移除第 ${index + 1} 张图片`);
+      remove.setAttribute("aria-label", `Remove photo ${index + 1}`);
       remove.addEventListener("click", () => {
         URL.revokeObjectURL(entry.previewUrl);
         state.images.splice(index, 1);
@@ -341,6 +362,7 @@
       }
     }
     imageInput.value = "";
+    cameraInput.value = "";
     renderImagePreview();
   }
 
@@ -355,6 +377,7 @@
 
     if (!SpeechRecognition) {
       micButton.hidden = true;
+      homeVoiceButton.hidden = true;
       return;
     }
 
@@ -365,7 +388,7 @@
     recognition.addEventListener("start", () => {
       micButton.classList.add("recording");
       micButton.setAttribute("aria-pressed", "true");
-      setStatus("正在听…");
+      setStatus("Listening…");
     });
 
     recognition.addEventListener("result", (event) => {
@@ -386,13 +409,13 @@
     recognition.addEventListener("error", (event) => {
       const message =
         event.error === "not-allowed"
-          ? "没有麦克风权限，请在浏览器设置中允许麦克风。"
-          : "语音输入失败，请改用文字输入。";
+          ? "Microphone access was denied. Allow it in your browser settings."
+          : "Voice input did not work. Please type your question instead.";
       setStatus(message, true);
     });
 
     state.recognition = recognition;
-    micButton.addEventListener("click", () => {
+    function startRecognition() {
       recognition.lang =
         languageInput.value === "en"
           ? "en-US"
@@ -404,6 +427,12 @@
       } catch {
         recognition.stop();
       }
+    }
+
+    micButton.addEventListener("click", startRecognition);
+    homeVoiceButton.addEventListener("click", () => {
+      welcomePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      startRecognition();
     });
   }
 
@@ -419,6 +448,116 @@
     resizeTextarea();
     welcomePanel.hidden = false;
     questionInput.focus();
+  }
+
+  const stageLabels = {
+    "": "Stage not set",
+    budbreak: "Budbreak",
+    flowering: "Flowering",
+    fruit_set: "Fruit set",
+    veraison: "Veraison",
+    harvest: "Harvest",
+    postharvest: "Postharvest",
+    dormant: "Dormant"
+  };
+
+  function updateContextSummary() {
+    const country = countryInput.value.trim();
+    const stage = stageLabels[stageInput.value] || stageLabels[""];
+    const parts = [country || "Country not set", stage];
+    contextSummary.textContent = parts.join(" · ");
+  }
+
+  function interfaceError(message) {
+    const value = String(message || "").trim();
+    if (!value) return currentText().networkError;
+    if (/超时/.test(value)) {
+      return "The request timed out. Detailed photo reviews can take up to two minutes; please try again.";
+    }
+    if (/免费使用次数已用完/.test(value)) {
+      return "Today's free usage limit has been reached. Please try again tomorrow.";
+    }
+    if (/最多上传两张/.test(value)) {
+      return currentText().tooManyImages;
+    }
+    if (/问题太长/.test(value)) {
+      return "Your question is too long. Please shorten it and try again.";
+    }
+    return /[\u3400-\u9fff]/.test(value)
+      ? "The assistant could not complete this request. Please try again."
+      : value;
+  }
+
+  function openContextDialog() {
+    updateContextSummary();
+    if (typeof contextDialog.showModal === "function") {
+      contextDialog.showModal();
+    } else {
+      contextDialog.setAttribute("open", "");
+    }
+  }
+
+  function closeContextDialog() {
+    if (typeof contextDialog.close === "function") {
+      contextDialog.close();
+    } else {
+      contextDialog.removeAttribute("open");
+    }
+  }
+
+  function setupInstallPrompt() {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+    const isIos =
+      /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (standalone) {
+      installButton.hidden = true;
+      return;
+    }
+
+    if (isIos) installButton.hidden = false;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      state.installPrompt = event;
+      installButton.hidden = false;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installButton.hidden = true;
+      state.installPrompt = null;
+      setStatus("AgriLingua was installed successfully.");
+    });
+
+    installButton.addEventListener("click", async () => {
+      if (state.installPrompt) {
+        state.installPrompt.prompt();
+        const choice = await state.installPrompt.userChoice;
+        if (choice.outcome === "accepted") installButton.hidden = true;
+        state.installPrompt = null;
+        return;
+      }
+
+      setStatus(
+        isIos
+          ? "In Safari, tap Share, then choose Add to Home Screen."
+          : "Open your browser menu and choose Install app or Add to Home screen."
+      );
+    });
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    if (!["https:", "http:"].includes(location.protocol)) return;
+
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {
+        // The app remains usable online when service-worker registration fails.
+      });
+    });
   }
 
   async function sendMessage() {
@@ -437,14 +576,15 @@
 
     state.busy = true;
     sendButton.disabled = true;
-    sendButton.textContent = currentText().sending;
+    sendButton.setAttribute("aria-label", currentText().sending);
     setStatus("");
     welcomePanel.hidden = true;
 
     const previews = state.images.map((item) => item.previewUrl);
-    createMessage("user", question || "请分析这些葡萄照片并给出处理建议。", previews, false);
+    createMessage("user", question || "Analyze these grape photos and give me the next steps.", previews, false);
 
     const typing = createTypingMessage();
+    const stopProgress = startProgress(typing, state.images.length > 0);
     const form = new FormData();
     form.append("text", question);
     form.append("language", languageInput.value);
@@ -486,7 +626,9 @@
       }
 
       state.conversationId = payload.conversationId || "";
+      stopProgress();
       typing.remove();
+      setStatus("");
       createMessage("assistant", payload.reply || currentText().networkError, [], false);
       state.images.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       state.images = [];
@@ -494,24 +636,44 @@
       questionInput.value = "";
       resizeTextarea();
     } catch (error) {
+      stopProgress();
       typing.remove();
       const message =
         error && error.name === "AbortError"
-          ? "请求超时。工作流可能仍在处理，请稍后重试。"
-          : error.message || currentText().networkError;
+          ? "The request timed out. The diagnosis may still be processing. Please retry in a moment."
+          : interfaceError(error.message);
       createMessage("assistant", message, [], true);
       setStatus(message, true);
     } finally {
       state.busy = false;
       sendButton.disabled = false;
-      sendButton.textContent = currentText().send;
+      sendButton.setAttribute("aria-label", currentText().send);
     }
   }
 
   imageInput.addEventListener("change", () => addFiles(imageInput.files));
+  cameraInput.addEventListener("change", () => addFiles(cameraInput.files));
   sendButton.addEventListener("click", sendMessage);
   newChatButton.addEventListener("click", clearConversation);
-  languageInput.addEventListener("change", renderQuickPrompts);
+  languageInput.addEventListener("change", () => {
+    renderQuickPrompts();
+    const languageNames = {
+      en: "English",
+      zh: "Chinese",
+      ja: "Japanese"
+    };
+    setStatus(`Answers will be provided in ${languageNames[languageInput.value]}.`);
+  });
+  contextButton.addEventListener("click", openContextDialog);
+  contextClose.addEventListener("click", closeContextDialog);
+  contextSave.addEventListener("click", closeContextDialog);
+  contextDialog.addEventListener("click", (event) => {
+    if (event.target === contextDialog) closeContextDialog();
+  });
+  [countryInput, stageInput, weatherInput].forEach((input) => {
+    input.addEventListener("input", updateContextSummary);
+    input.addEventListener("change", updateContextSummary);
+  });
   questionInput.addEventListener("input", resizeTextarea);
   questionInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -520,9 +682,13 @@
     }
   });
 
+  languageInput.value = "en";
   renderQuickPrompts();
   renderImagePreview();
   resizeTextarea();
   setupSpeechInput();
+  setupInstallPrompt();
+  registerServiceWorker();
+  updateContextSummary();
 })();
 

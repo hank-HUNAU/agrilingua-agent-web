@@ -1,4 +1,4 @@
-# 神农语智免登录网页
+# 神农语智免登录手机 App
 
 部署方式：
 
@@ -19,6 +19,8 @@ https://你的GitHub用户名.github.io/仓库名/
 ```
 
 用户不需要登录扣子。扣子的 Access Token 只保存在 Supabase Secrets。
+
+界面固定使用英文，回答语言默认英文，可在顶部切换为中文或日文。
 
 ## 一、先确认扣子 API
 
@@ -166,7 +168,29 @@ Source = GitHub Actions
 https://你的GitHub用户名.github.io/仓库名/
 ```
 
-## 五、测试
+## 五、安装为手机 App
+
+项目已启用 PWA。使用 HTTPS 地址首次打开后：
+
+- Android Chrome：点击页面顶部 `Install`，或在浏览器菜单中选择“安装应用”。
+- iPhone Safari：点击分享按钮，再选择“添加到主屏幕”。
+- 安装后会以全屏 App 形式启动，并使用品牌图标。
+
+PWA 相关文件：
+
+```text
+public/manifest.webmanifest
+public/sw.js
+public/icons/
+```
+
+断网时可以重新打开 App 外壳；照片识别、问答和语音生成仍需要网络。
+
+## 六、测试
+
+### 默认界面
+
+首次打开应为英文界面，回答语言默认选择 `English`。
 
 ### 中文文字
 
@@ -202,7 +226,7 @@ When should I prune my grapevines?
 - 没有向页面泄露 Coze Token。
 - 调用次数上限生效。
 
-## 六、安全措施
+## 七、安全措施
 
 - 服务端限制最多两张图片，单张不超过 8 MB。
 - 限制问题最长 3000 字符。
@@ -211,7 +235,7 @@ When should I prune my grapevines?
 - 服务端日志不得记录扣子 Token 或图片内容。
 - 公开上线前检查 Supabase、GitHub Pages 和目标手机网络是否可访问。
 
-## 七、能力边界
+## 八、能力边界
 
 本版本支持：
 
@@ -219,6 +243,10 @@ When should I prune my grapevines?
 文字输入
 一张或两张图片上传
 中文、英文、日文回答
+英文界面
+可安装 PWA 手机 App
+手机拍照入口
+上下文与阶段式诊断进度
 Markdown 图文卡
 audio_url 语音播放
 多轮对话
