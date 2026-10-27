@@ -2,6 +2,7 @@
 .env.*
 node_modules/
 .supabase/
+supabase/.temp/
 .DS_Store
 Thumbs.db
 
