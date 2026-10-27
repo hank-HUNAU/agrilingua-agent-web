@@ -1,1 +1,6 @@
-d2luZG93LkFHUklfQ09ORklHID0gewogIHN1cGFiYXNlVXJsOiAiaHR0cHM6Ly9xZGVueW1ld2hjcnRxY2ZqaXFleS5zdXBhYmFzZS5jbyIsCiAgc3VwYWJhc2VBbm9uS2V5OiAic2JfcHVibGlzaGFibGVfdkFTdXRYYzlKelFFTVNldzBMeW51d19GMWtqajI2UiIsCiAgZnVuY3Rpb25OYW1lOiAiYWdyaWxpbmd1YSIKfTsKCg==
+window.AGRI_CONFIG = {
+  supabaseUrl: "https://qdenymewhcrtqcfjiqey.supabase.co",
+  supabaseAnonKey: "sb_publishable_vASutXc9JzQEMSew0Lynuw_F1kjj26R",
+  functionName: "agrilingua"
+};
+
