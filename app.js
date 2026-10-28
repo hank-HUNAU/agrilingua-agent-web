@@ -1060,9 +1060,30 @@
       endVoiceHold(false);
     });
 
+    holdButton.addEventListener("pointermove", (event) => {
+      if (holdInProgress) event.preventDefault();
+    });
+
     holdButton.addEventListener("pointercancel", () => {
       endVoiceHold(true);
     });
+
+    holdButton.addEventListener(
+      "touchstart",
+      (event) => {
+        event.preventDefault();
+        document.documentElement.classList.add("voice-holding");
+      },
+      { passive: false }
+    );
+
+    holdButton.addEventListener(
+      "touchmove",
+      (event) => {
+        if (holdInProgress) event.preventDefault();
+      },
+      { passive: false }
+    );
 
     holdButton.addEventListener("contextmenu", (event) => {
       event.preventDefault();
@@ -1070,6 +1091,22 @@
 
     holdButton.addEventListener("click", (event) => {
       if (event.detail === 0) setComposerMode("text", true);
+    });
+
+    document.addEventListener("selectstart", (event) => {
+      if (document.documentElement.classList.contains("voice-holding")) {
+        event.preventDefault();
+      }
+    });
+    document.addEventListener("dragstart", (event) => {
+      if (document.documentElement.classList.contains("voice-holding")) {
+        event.preventDefault();
+      }
+    });
+    document.addEventListener("contextmenu", (event) => {
+      if (document.documentElement.classList.contains("voice-holding")) {
+        event.preventDefault();
+      }
     });
   }
 
