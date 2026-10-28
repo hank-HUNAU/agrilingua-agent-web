@@ -34,6 +34,7 @@
   const contextSave = document.getElementById("context-save");
   const contextSummary = document.getElementById("context-summary");
   const installButton = document.getElementById("install-button");
+  const composer = document.getElementById("composer");
 
   const state = {
     images: [],
@@ -564,6 +565,7 @@
     setStatus("");
     resizeTextarea();
     welcomePanel.hidden = false;
+    composer.classList.add("home-mode");
     sendButton.disabled = false;
     sendButton.setAttribute("aria-label", currentText().send);
     newChatButton.setAttribute("aria-label", "Start a new chat");
@@ -701,6 +703,7 @@
     newChatButton.setAttribute("aria-label", "Cancel analysis and start a new chat");
     setStatus("");
     welcomePanel.hidden = true;
+    composer.classList.remove("home-mode");
 
     const previews = state.images.map((item) => item.previewUrl);
     createMessage("user", question || "Analyze these grape photos and give me the next steps.", previews, false);

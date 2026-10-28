@@ -355,7 +355,7 @@ img {
 .hero-card {
   position: relative;
   overflow: hidden;
-  padding: 18px 20px;
+  padding: 12px;
   border: 1px solid rgba(92, 199, 255, 0.2);
   border-radius: 28px;
   color: white;
@@ -381,11 +381,6 @@ img {
   pointer-events: none;
 }
 
-.hero-heading {
-  position: relative;
-  z-index: 1;
-}
-
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -398,23 +393,6 @@ img {
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 1.2px;
-}
-
-.hero-card h2 {
-  margin: 8px 0 0;
-  font-size: clamp(26px, 5.5vw, 34px);
-  line-height: 1.06;
-  letter-spacing: -1px;
-}
-
-.hero-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 600px;
-  margin: 11px 0 15px;
-  color: rgba(239, 248, 255, 0.8);
-  font-size: 13px;
-  line-height: 1.55;
 }
 
 .primary-actions {
@@ -803,6 +781,23 @@ img {
   gap: 7px;
 }
 
+.composer.home-mode #composer-photo-button,
+.composer.home-mode #mic-button {
+  display: none;
+}
+
+.composer.home-mode .message-row {
+  grid-template-columns: minmax(0, 1fr) 48px;
+}
+
+.composer.home-mode textarea {
+  grid-column: 1;
+}
+
+.composer.home-mode .send-button {
+  grid-column: 2;
+}
+
 .mic-button,
 .send-button {
   flex: 0 0 auto;
@@ -887,13 +882,6 @@ input:focus {
 
 .status.error {
   color: var(--danger);
-}
-
-.privacy-note {
-  margin: 3px 1px 0;
-  color: var(--muted);
-  font-size: 9.5px;
-  line-height: 1.42;
 }
 
 .typing-wrap {
@@ -1094,7 +1082,7 @@ input:focus {
   }
 
   .hero-card {
-    padding: 22px;
+    padding: 14px;
   }
 
   .composer {
@@ -1172,24 +1160,8 @@ input:focus {
   }
 
   .hero-card {
-    padding: 14px 14px 13px;
+    padding: 10px;
     border-radius: 24px;
-  }
-
-  .hero-heading {
-    gap: 0;
-  }
-
-  .hero-card h2 {
-    margin-top: 6px;
-    font-size: clamp(24px, 5.5vw, 28px);
-    letter-spacing: -0.7px;
-  }
-
-  .hero-copy {
-    margin: 9px 0 12px;
-    font-size: 12px;
-    line-height: 1.5;
   }
 
   .primary-actions {
@@ -1245,9 +1217,6 @@ input:focus {
     padding-right: 9px;
   }
 
-  .privacy-note {
-    font-size: 9px;
-  }
 }
 
 @media (max-width: 370px) {
@@ -1287,10 +1256,6 @@ input:focus {
 
   .language-code {
     display: inline;
-  }
-
-  .hero-heading {
-    display: block;
   }
 
   .action-card small {

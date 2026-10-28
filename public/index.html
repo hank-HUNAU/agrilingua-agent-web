@@ -76,15 +76,6 @@
     <main class="app-content">
       <section class="welcome" id="welcome-panel">
         <div class="hero-card">
-          <div class="hero-heading">
-            <span class="eyebrow">PHOTO · VOICE · TEXT</span>
-            <h2>Grape answers,<br>right in the field.</h2>
-          </div>
-          <p class="hero-copy">
-            Send up to two clear photos or ask a question. Get practical next steps
-            and a voice answer in English, Chinese, or Japanese.
-          </p>
-
           <div class="primary-actions" aria-label="Start a diagnosis">
             <label class="action-card action-primary" for="camera-input">
               <span class="action-icon" aria-hidden="true">
@@ -140,11 +131,11 @@
       <section id="chat-log" class="chat-log" aria-live="polite"></section>
     </main>
 
-    <section class="composer" aria-label="Message composer">
+    <section id="composer" class="composer home-mode" aria-label="Message composer">
       <div id="image-preview" class="image-preview" hidden></div>
 
       <div class="composer-tools">
-        <label class="tool-button" for="image-input" title="Add a photo">
+        <label id="composer-photo-button" class="tool-button" for="image-input" title="Add a photo">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 4 7.5 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4H9Z"></path>
             <circle cx="12" cy="13" r="4"></circle>
@@ -180,10 +171,6 @@
       </div>
 
       <div id="status" class="status" role="status" aria-live="polite"></div>
-      <p class="privacy-note">
-        Photos are used only for this analysis. Do not upload faces, IDs, or private information.
-        Screening results do not replace a laboratory test or local extension advice.
-      </p>
     </section>
   </div>
 
