@@ -517,8 +517,17 @@
   }
 
   function safeHref(raw) {
-    const value = raw.trim();
+    const value = normalizeExternalUrl(raw);
     return /^https?:\/\//i.test(value) ? value : "#";
+  }
+
+  function normalizeExternalUrl(raw) {
+    let value = String(raw || "").trim();
+    value = value.replaceAll("\\u0026", "&");
+    for (let index = 0; index < 3; index += 1) {
+      value = value.replaceAll("&amp;", "&").replaceAll("\\&", "&");
+    }
+    return value;
   }
 
   function renderInline(value) {
@@ -530,7 +539,8 @@
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       (_, label, url) => {
         const href = safeHref(url);
-        return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        const labelHtml = label.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${labelHtml}</a>`;
       }
     );
     return text;
@@ -597,12 +607,26 @@
     const pattern = /\((https?:\/\/[^)\s]+)\)/g;
     for (const match of String(text || "").matchAll(pattern)) {
       if (/\.mp3(?:\?|$)|audio|speech/i.test(match[1])) {
-        return match[1].replaceAll("&amp;", "&");
+        return normalizeExternalUrl(match[1]);
       }
     }
 
     const raw = String(text || "").match(/https?:\/\/[^\s)]+\.mp3[^\s)]*/i);
-    return raw ? raw[0] : "";
+    return raw ? normalizeExternalUrl(raw[0]) : "";
+  }
+
+  function stripInlineAudioLink(markdown) {
+    return String(markdown || "")
+      .replace(
+        /^.*\[[^\]\n]+\]\(https?:\/\/[^)\s]+(?:\.mp3|audio|speech)[^)]*\).*$/gim,
+        ""
+      )
+      .replace(
+        /(?:^|\n)\s*(?:🔊\s*)?(?:Audio explanation|语音讲解|音声解説)\s*[:：]?\s*(?=\n|$)/gim,
+        "\n"
+      )
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
   }
 
   function createMessage(role, text, images, isError) {
@@ -621,9 +645,11 @@
       imageBox.appendChild(img);
     }
 
-    node.querySelector(".message-body").innerHTML = renderMarkdown(text);
-
     const audio = extractAudioUrl(text);
+    const displayText =
+      audio && role === "assistant" ? stripInlineAudioLink(text) : text;
+    node.querySelector(".message-body").innerHTML = renderMarkdown(displayText);
+
     if (audio && role === "assistant") {
       const audioWrap = node.querySelector(".audio-wrap");
       audioWrap.hidden = false;

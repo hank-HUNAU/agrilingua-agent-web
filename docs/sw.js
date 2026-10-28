@@ -1,4 +1,4 @@
-const CACHE_NAME = "agrilingua-shell-v18";
+const CACHE_NAME = "agrilingua-shell-v19";
 const APP_SHELL = [
   "./",
   "./index.html",
