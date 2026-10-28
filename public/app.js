@@ -13,6 +13,9 @@
   const imageInput = document.getElementById("image-input");
   const cameraInput = document.getElementById("camera-input");
   const micButton = document.getElementById("mic-button");
+  const voiceToggleButton = document.getElementById("voice-toggle");
+  const holdButton = document.getElementById("hold-button");
+  const textComposer = document.getElementById("text-composer");
   const imagePreview = document.getElementById("image-preview");
   const languageInput = document.getElementById("language-input");
   const languageButton = document.getElementById("language-button");
@@ -44,7 +47,8 @@
     progressTimer: 0,
     installPrompt: null,
     controller: null,
-    requestId: 0
+    requestId: 0,
+    composerMode: "voice"
   };
 
   const prompts = {
@@ -143,6 +147,15 @@
       useDetails: "Use these details",
       voiceInput: "Voice input",
       voiceInputAria: "Start voice input",
+      switchToText: "Switch to text",
+      switchToVoice: "Switch to voice",
+      holdToTalk: "Hold to talk",
+      tapToType: "Tap to type",
+      holdToTalkAria: "Hold to talk. Tap to type.",
+      listeningHold: "Listening… release to convert to text.",
+      convertingSpeech: "Converting speech to text…",
+      voiceCancelled: "Voice input cancelled.",
+      noSpeechDetected: "No speech detected. Tap to type instead.",
       placeholder: "Type something",
       send: "Send",
       sending: "Analyzing…",
@@ -228,6 +241,15 @@
       useDetails: "使用这些信息",
       voiceInput: "语音输入",
       voiceInputAria: "开始语音输入",
+      switchToText: "切换到文字输入",
+      switchToVoice: "切换到语音",
+      holdToTalk: "按住说话",
+      tapToType: "单击转文字",
+      holdToTalkAria: "按住说话，单击切换到文字输入",
+      listeningHold: "正在聆听，松开后转换为文字…",
+      convertingSpeech: "正在将语音转换为文字…",
+      voiceCancelled: "已取消语音输入。",
+      noSpeechDetected: "没有识别到语音，请单击切换为文字输入。",
       placeholder: "输入内容…",
       send: "发送",
       sending: "分析中…",
@@ -313,6 +335,15 @@
       useDetails: "この情報を使用",
       voiceInput: "音声入力",
       voiceInputAria: "音声入力を開始",
+      switchToText: "文字入力に切り替え",
+      switchToVoice: "音声に切り替え",
+      holdToTalk: "押して話す",
+      tapToType: "タップで文字入力",
+      holdToTalkAria: "押して話す。タップで文字入力に切り替え。",
+      listeningHold: "聞き取り中… 指を離すと文字に変換します。",
+      convertingSpeech: "音声を文字に変換しています…",
+      voiceCancelled: "音声入力をキャンセルしました。",
+      noSpeechDetected: "音声を認識できませんでした。タップして文字入力に切り替えてください。",
       placeholder: "入力してください…",
       send: "送信",
       sending: "分析中…",
@@ -406,6 +437,7 @@
     }
 
     updateLanguagePicker();
+    updateComposerModeAria();
     updateContextSummary();
     renderImagePreview();
     renderQuickPrompts();
@@ -441,6 +473,30 @@
   function toggleComposerTools() {
     if (composerTools.hidden) openComposerTools();
     else closeComposerTools();
+  }
+
+  function updateComposerModeAria() {
+    voiceToggleButton.setAttribute(
+      "aria-label",
+      state.composerMode === "text"
+        ? currentText().switchToVoice
+        : currentText().switchToText
+    );
+  }
+
+  function setComposerMode(mode, focusIfText = false) {
+    state.composerMode = mode === "text" ? "text" : "voice";
+    const isText = state.composerMode === "text";
+    holdButton.hidden = isText;
+    textComposer.hidden = !isText;
+    updateComposerModeAria();
+    updateSendState();
+
+    if (isText && focusIfText) {
+      questionInput.focus();
+    } else if (!isText) {
+      questionInput.blur();
+    }
   }
 
   function setStatus(message, isError) {
@@ -667,7 +723,8 @@
       button.setAttribute("aria-label", prompt.text);
       button.addEventListener("click", () => {
         questionInput.value = prompt.text;
-        questionInput.focus();
+        closeComposerTools();
+        setComposerMode("text", true);
         resizeTextarea();
         updateSendState();
       });
@@ -828,6 +885,7 @@
       }
     }
     renderImagePreview();
+    if (state.images.length > 0) setComposerMode("text", true);
   }
 
   function resizeTextarea() {
@@ -838,48 +896,103 @@
   function setupSpeechInput() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
+    const holdThresholdMs = 360;
+    let recognition = null;
+    let holdStartedAt = 0;
+    let holdTimer = 0;
+    let holdInProgress = false;
+    let holdTriggered = false;
+    let recognitionEnded = true;
+    let awaitingResult = false;
+    let suppressEnd = false;
+    let transcript = "";
 
-    if (!SpeechRecognition) {
-      micButton.hidden = true;
-      return;
+    function setRecordingState(active) {
+      holdButton.classList.toggle("is-recording", active);
+      holdButton.setAttribute("aria-pressed", String(active));
+      micButton.classList.toggle("recording", active);
+      micButton.setAttribute("aria-pressed", String(active));
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-
-    recognition.addEventListener("start", () => {
-      micButton.classList.add("recording");
-      micButton.setAttribute("aria-pressed", "true");
-      setStatus(currentText().listening);
-    });
-
-    recognition.addEventListener("result", (event) => {
-      let transcript = "";
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        transcript += event.results[index][0].transcript;
+    function finishTranscript() {
+      awaitingResult = false;
+      setRecordingState(false);
+      setComposerMode("text", true);
+      if (transcript.trim()) {
+        setStatus("");
+      } else {
+        setStatus(currentText().noSpeechDetected, true);
       }
-      questionInput.value = transcript.trim();
-      resizeTextarea();
-      updateSendState();
-    });
+    }
 
-    recognition.addEventListener("end", () => {
-      micButton.classList.remove("recording");
-      micButton.setAttribute("aria-pressed", "false");
-      setStatus("");
-    });
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
 
-    recognition.addEventListener("error", (event) => {
-      const message =
-        event.error === "not-allowed"
-          ? currentText().micDenied
-          : currentText().voiceFailed;
-      setStatus(message, true);
-    });
+      recognition.addEventListener("start", () => {
+        recognitionEnded = false;
+      });
 
-    state.recognition = recognition;
-    function startRecognition() {
+      recognition.addEventListener("result", (event) => {
+        let combined = "";
+        for (let index = 0; index < event.results.length; index += 1) {
+          combined += event.results[index][0].transcript;
+        }
+        transcript = combined.trim();
+        questionInput.value = transcript;
+        resizeTextarea();
+        updateSendState();
+      });
+
+      recognition.addEventListener("end", () => {
+        recognitionEnded = true;
+        setRecordingState(false);
+        if (suppressEnd) {
+          suppressEnd = false;
+          return;
+        }
+        if (awaitingResult) finishTranscript();
+      });
+
+      recognition.addEventListener("error", (event) => {
+        clearTimeout(holdTimer);
+        recognitionEnded = true;
+        holdInProgress = false;
+        awaitingResult = false;
+        setRecordingState(false);
+        if (suppressEnd) {
+          suppressEnd = false;
+          return;
+        }
+        const message =
+          event.error === "not-allowed"
+            ? currentText().micDenied
+            : currentText().voiceFailed;
+        setComposerMode("text", true);
+        setStatus(message, true);
+      });
+
+      state.recognition = recognition;
+    } else {
+      micButton.hidden = true;
+    }
+
+    function startSpeechCapture() {
+      if (!holdInProgress) return;
+      if (!recognition) {
+        holdInProgress = false;
+        setComposerMode("text", true);
+        setStatus(currentText().voiceFailed, true);
+        return;
+      }
+
+      holdTriggered = true;
+      recognitionEnded = false;
+      setRecordingState(true);
+      setStatus(currentText().listeningHold);
+      navigator.vibrate?.(12);
+
       recognition.lang =
         languageInput.value === "en"
           ? "en-US"
@@ -889,13 +1002,93 @@
       try {
         recognition.start();
       } catch {
+        recognitionEnded = true;
+        holdInProgress = false;
+        setRecordingState(false);
+        setComposerMode("text", true);
+        setStatus(currentText().voiceFailed, true);
+      }
+    }
+
+    function beginVoiceHold() {
+      holdStartedAt = performance.now();
+      holdInProgress = true;
+      holdTriggered = false;
+      recognitionEnded = true;
+      awaitingResult = false;
+      suppressEnd = false;
+      transcript = "";
+      questionInput.value = "";
+      updateSendState();
+      clearTimeout(holdTimer);
+      holdTimer = window.setTimeout(startSpeechCapture, holdThresholdMs);
+    }
+
+    function endVoiceHold(cancelled = false) {
+      if (!holdInProgress) return;
+      const duration = performance.now() - holdStartedAt;
+      holdInProgress = false;
+      clearTimeout(holdTimer);
+
+      if (cancelled) {
+        suppressEnd = holdTriggered;
+        setRecordingState(false);
+        if (holdTriggered) recognition?.abort();
+        setStatus(currentText().voiceCancelled);
+        return;
+      }
+
+      if (!holdTriggered || duration < holdThresholdMs) {
+        suppressEnd = holdTriggered;
+        setRecordingState(false);
+        if (holdTriggered) recognition?.abort();
+        setComposerMode("text", true);
+        setStatus("");
+        return;
+      }
+
+      awaitingResult = true;
+      setRecordingState(false);
+      setStatus(currentText().convertingSpeech);
+      if (!recognition || recognitionEnded) {
+        finishTranscript();
+      } else {
         recognition.stop();
       }
     }
 
+    voiceToggleButton.addEventListener("click", () => {
+      closeComposerTools();
+      setComposerMode(
+        state.composerMode === "text" ? "voice" : "text",
+        state.composerMode === "text"
+      );
+      setStatus("");
+    });
+
     micButton.addEventListener("click", () => {
       closeComposerTools();
-      startRecognition();
+      setComposerMode("voice");
+      setStatus("");
+    });
+
+    holdButton.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      holdButton.setPointerCapture?.(event.pointerId);
+      beginVoiceHold();
+    });
+
+    holdButton.addEventListener("pointerup", (event) => {
+      holdButton.releasePointerCapture?.(event.pointerId);
+      endVoiceHold(false);
+    });
+
+    holdButton.addEventListener("pointercancel", () => {
+      endVoiceHold(true);
+    });
+
+    holdButton.addEventListener("click", (event) => {
+      if (event.detail === 0) setComposerMode("text", true);
     });
   }
 
@@ -916,8 +1109,9 @@
     welcomePanel.hidden = false;
     sendButton.setAttribute("aria-label", currentText().send);
     newChatButton.setAttribute("aria-label", currentText().newChatAria);
+    setComposerMode("voice");
     updateSendState();
-    questionInput.focus();
+    holdButton.focus();
   }
 
   const stageLabelKeys = {
@@ -1253,6 +1447,7 @@
   applyLocale(languageInput.value);
   renderImagePreview();
   resizeTextarea();
+  setComposerMode("voice");
   setupSpeechInput();
   setupInstallPrompt();
   registerServiceWorker();

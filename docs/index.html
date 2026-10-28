@@ -73,15 +73,7 @@
     </header>
 
     <main class="app-content">
-      <section class="welcome" id="welcome-panel">
-        <div class="prompt-section">
-          <div class="section-heading">
-            <span data-i18n="tryAsking">Try asking</span>
-            <span class="secure-note" data-i18n="privateDefault">Private by default</span>
-          </div>
-          <div class="quick-prompts" id="quick-prompts"></div>
-        </div>
-      </section>
+      <section class="welcome" id="welcome-panel"></section>
 
       <section id="chat-log" class="chat-log" aria-live="polite"></section>
     </main>
@@ -119,23 +111,47 @@
           <span data-i18n="fieldDetails">Field details</span>
         </button>
         <span id="context-summary" class="context-summary">Kenya · Fruit set</span>
+        <div class="quick-block">
+          <div class="quick-title" data-i18n="tryAsking">Quick questions</div>
+          <div class="quick-prompts" id="quick-prompts"></div>
+        </div>
       </div>
 
       <div class="message-row">
+        <button id="voice-toggle" class="voice-toggle" type="button" aria-label="Switch to text">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"></path>
+          </svg>
+        </button>
+
+        <div class="entry-area">
+          <button id="hold-button" class="hold-button" type="button" aria-label="Hold to talk. Tap to type." data-i18n-aria="holdToTalkAria">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="12" rx="3"></rect>
+              <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
+            </svg>
+            <span class="hold-copy">
+              <strong data-i18n="holdToTalk">Hold to talk</strong>
+              <small data-i18n="tapToType">Tap to type</small>
+            </span>
+          </button>
+
+          <div id="text-composer" class="text-composer" hidden>
+            <textarea id="question-input" rows="1" maxlength="3000" placeholder="Type something" data-i18n-placeholder="placeholder"></textarea>
+            <button id="send-button" class="send-button" type="button" aria-label="Send message" data-i18n-aria="send">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m4 4 17 8-17 8 3-8-3-8Z"></path>
+                <path d="M7 12h14"></path>
+              </svg>
+              <span class="sr-only" data-i18n="send">Send</span>
+            </button>
+          </div>
+        </div>
+
         <button id="tools-button" class="tools-button" type="button" aria-label="More tools" aria-expanded="false" aria-controls="composer-tools" data-i18n-aria="moreTools">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 5v14M5 12h14"></path>
           </svg>
-        </button>
-
-        <textarea id="question-input" rows="1" maxlength="3000" placeholder="Type something" data-i18n-placeholder="placeholder"></textarea>
-
-        <button id="send-button" class="send-button" type="button" aria-label="Send message" data-i18n-aria="send">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m4 4 17 8-17 8 3-8-3-8Z"></path>
-            <path d="M7 12h14"></path>
-          </svg>
-          <span class="sr-only" data-i18n="send">Send</span>
         </button>
       </div>
 
