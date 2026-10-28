@@ -887,6 +887,8 @@ img {
 .text-composer {
   position: relative;
   min-width: 0;
+  display: flex;
+  align-items: flex-end;
 }
 
 .composer-tools .mic-button {
@@ -952,6 +954,7 @@ textarea {
   min-width: 0;
   min-height: 44px;
   max-height: 128px;
+  display: block;
   padding: 11px 13px;
   resize: none;
   border: 0;
