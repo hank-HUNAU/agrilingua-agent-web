@@ -484,23 +484,23 @@ img {
 .quick-prompts {
   width: 100%;
   min-width: 0;
-  margin-top: 11px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .quick-prompt {
-  min-width: 0;
-  min-height: 48px;
-  padding: 8px 9px;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
   border: 0;
   border-radius: 999px;
   color: var(--text);
-  background: var(--surface-blue);
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.25;
+  background: #e9edf2;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -745,19 +745,6 @@ img {
   text-overflow: ellipsis;
 }
 
-.quick-block {
-  grid-column: 1 / -1;
-  padding-top: 7px;
-  border-top: 1px solid rgba(217, 229, 244, 0.75);
-}
-
-.quick-title {
-  margin: 0 2px 7px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 750;
-}
-
 .image-preview {
   display: flex;
   gap: 8px;
@@ -848,8 +835,24 @@ img {
   gap: 8px;
   color: var(--navy);
   background: #edf3fa;
-  user-select: none;
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hold-button * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+html.voice-holding .app-shell,
+html.voice-holding .app-shell * {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 .hold-button svg {
