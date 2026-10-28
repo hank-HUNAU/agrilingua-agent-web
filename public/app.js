@@ -102,7 +102,6 @@
     en: {
       title: "AgriLingua | Grape Field Assistant",
       metaDescription: "AgriLingua is a multilingual grape field assistant for photo diagnosis, practical next steps, and voice answers.",
-      appSubtitle: "Grape field assistant",
       install: "Install",
       installAria: "Install AgriLingua",
       language: "Language",
@@ -188,7 +187,6 @@
     zh: {
       title: "AgriLingua｜葡萄田间助手",
       metaDescription: "AgriLingua 是支持照片诊断、实用行动建议和语音回答的多语言葡萄田间助手。",
-      appSubtitle: "葡萄田间助手",
       install: "安装",
       installAria: "安装 AgriLingua",
       language: "语言",
@@ -274,7 +272,6 @@
     ja: {
       title: "AgriLingua｜ブドウ圃場アシスタント",
       metaDescription: "AgriLingua は写真診断、実用的な対応策、音声回答を提供する多言語ブドウ圃場アシスタントです。",
-      appSubtitle: "ブドウ圃場アシスタント",
       install: "インストール",
       installAria: "AgriLingua をインストール",
       language: "言語",
