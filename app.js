@@ -1224,6 +1224,60 @@
     });
   }
 
+  function setupViewportHeight() {
+    const viewport = window.visualViewport;
+    let frame = 0;
+
+    function sync() {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const visibleHeight = viewport?.height || window.innerHeight;
+        const desktop = window.matchMedia("(min-width: 600px)").matches;
+        const shellHeight = Math.max(
+          320,
+          Math.floor(visibleHeight - (desktop ? 36 : 0))
+        );
+        document.documentElement.style.setProperty(
+          "--app-height",
+          `${shellHeight}px`
+        );
+
+        const keyboardHeight = Math.max(0, window.innerHeight - visibleHeight);
+        const editorFocused = document.activeElement?.matches?.(
+          "textarea, input"
+        );
+        const keyboardOpen = Boolean(
+          viewport &&
+            editorFocused &&
+            (keyboardHeight > 120 || visibleHeight < window.innerHeight * 0.82)
+        );
+        document.documentElement.classList.toggle(
+          "keyboard-open",
+          keyboardOpen
+        );
+        if (keyboardOpen && window.scrollY !== 0) {
+          window.scrollTo(0, 0);
+        }
+      });
+    }
+
+    viewport?.addEventListener("resize", sync);
+    viewport?.addEventListener("scroll", sync);
+    window.addEventListener("resize", sync);
+    window.addEventListener("orientationchange", () => setTimeout(sync, 120));
+    questionInput.addEventListener("focus", () => {
+      sync();
+      setTimeout(sync, 120);
+      setTimeout(sync, 320);
+    });
+    questionInput.addEventListener("blur", () => {
+      setTimeout(sync, 120);
+      setTimeout(sync, 320);
+    });
+    sync();
+  }
+
   async function sendMessage() {
     if (state.busy) return;
 
@@ -1451,6 +1505,7 @@
   setupSpeechInput();
   setupInstallPrompt();
   registerServiceWorker();
+  setupViewportHeight();
   updateContextSummary();
 })();
 
