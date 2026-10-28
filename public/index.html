@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0A2A6A">
   <meta name="referrer" content="no-referrer">
-  <meta name="description" content="AgriLingua is a multilingual grape field assistant for photo diagnosis, practical next steps, and voice answers.">
+  <meta id="meta-description" name="description" content="AgriLingua is a multilingual grape field assistant for photo diagnosis, practical next steps, and voice answers.">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -23,52 +23,52 @@
         <img class="brand-mark" src="./icons/icon-192.png" alt="">
         <div class="brand-copy">
           <h1>AgriLingua</h1>
-          <p>Grape field assistant</p>
+          <p data-i18n="appSubtitle">Grape field assistant</p>
         </div>
       </div>
 
       <div class="topbar-actions">
-        <button id="install-button" class="install-button" type="button" aria-label="Install AgriLingua" hidden>
+        <button id="install-button" class="install-button" type="button" aria-label="Install AgriLingua" data-i18n-aria="installAria" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"></path>
             <path d="M5 20h14"></path>
           </svg>
-          <span>Install</span>
+          <span data-i18n="install">Install</span>
         </button>
         <div class="language-control">
-          <span class="language-label">Reply</span>
-          <button id="language-button" class="language-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-menu">
+          <span class="language-label" data-i18n="language">Language</span>
+          <button id="language-button" class="language-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-menu" data-i18n-aria="languageAria">
             <span id="language-button-label" class="language-current">English</span>
             <span id="language-button-code" class="language-code" aria-hidden="true">EN</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m8 10 4 4 4-4"></path>
             </svg>
           </button>
-          <div id="language-menu" class="language-menu" role="listbox" aria-label="Answer language" hidden>
+          <div id="language-menu" class="language-menu" role="listbox" aria-label="Language" data-i18n-aria="languageAria" hidden>
             <button class="language-option" type="button" role="option" data-language="en" aria-selected="true">
               <span>English</span>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
             </button>
             <button class="language-option" type="button" role="option" data-language="zh" aria-selected="false">
-              <span>Chinese</span>
+              <span>中文</span>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
             </button>
             <button class="language-option" type="button" role="option" data-language="ja" aria-selected="false">
-              <span>Japanese</span>
+              <span>日本語</span>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
             </button>
           </div>
           <select id="language-input" class="language-native" aria-hidden="true" tabindex="-1">
             <option value="en" selected>English</option>
-            <option value="zh">Chinese</option>
-            <option value="ja">Japanese</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
           </select>
         </div>
-        <button id="new-chat-button" class="new-chat-button" type="button" aria-label="Start a new chat">
+        <button id="new-chat-button" class="new-chat-button" type="button" aria-label="Start a new chat" data-i18n-aria="newChatAria">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 5v14M5 12h14"></path>
           </svg>
-          <span>New chat</span>
+          <span data-i18n="newChat">New chat</span>
         </button>
       </div>
     </header>
@@ -76,7 +76,7 @@
     <main class="app-content">
       <section class="welcome" id="welcome-panel">
         <div class="hero-card">
-          <div class="primary-actions" aria-label="Start a diagnosis">
+          <div class="primary-actions" aria-label="Start a diagnosis" data-i18n-aria="actionsAria">
             <label class="action-card action-primary" for="camera-input">
               <span class="action-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -85,8 +85,8 @@
                 </svg>
               </span>
               <span>
-                <strong>Take photo</strong>
-                <small>Use the rear camera</small>
+                <strong data-i18n="takePhoto">Take photo</strong>
+                <small data-i18n="rearCamera">Use the rear camera</small>
               </span>
             </label>
 
@@ -99,8 +99,8 @@
                 </svg>
               </span>
               <span>
-                <strong>Gallery</strong>
-                <small>Up to two photos</small>
+                <strong data-i18n="gallery">Gallery</strong>
+                <small data-i18n="upToTwo">Up to two photos</small>
               </span>
             </label>
 
@@ -112,8 +112,8 @@
                 </svg>
               </span>
               <span>
-                <strong>Voice</strong>
-                <small>Speak your question</small>
+                <strong data-i18n="voice">Voice</strong>
+                <small data-i18n="speakQuestion">Speak your question</small>
               </span>
             </button>
           </div>
@@ -121,8 +121,8 @@
 
         <div class="prompt-section">
           <div class="section-heading">
-            <span>Try asking</span>
-            <span class="secure-note">Private by default</span>
+            <span data-i18n="tryAsking">Try asking</span>
+            <span class="secure-note" data-i18n="privateDefault">Private by default</span>
           </div>
           <div class="quick-prompts" id="quick-prompts"></div>
         </div>
@@ -131,42 +131,42 @@
       <section id="chat-log" class="chat-log" aria-live="polite"></section>
     </main>
 
-    <section id="composer" class="composer home-mode" aria-label="Message composer">
+    <section id="composer" class="composer home-mode" aria-label="Message composer" data-i18n-aria="composerAria">
       <div id="image-preview" class="image-preview" hidden></div>
 
       <div class="composer-tools">
-        <label id="composer-photo-button" class="tool-button" for="image-input" title="Add a photo">
+        <label id="composer-photo-button" class="tool-button" for="image-input" title="Add a photo" data-i18n-title="addPhoto">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 4 7.5 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4H9Z"></path>
             <circle cx="12" cy="13" r="4"></circle>
           </svg>
-          <span>Photo</span>
+          <span data-i18n="photo">Photo</span>
         </label>
         <button id="context-button" class="tool-button" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7h16M7 12h10M9 17h6"></path>
           </svg>
-          <span>Field details</span>
+          <span data-i18n="fieldDetails">Field details</span>
         </button>
         <span id="context-summary" class="context-summary">Kenya · Fruit set</span>
       </div>
 
       <div class="message-row">
-        <button id="mic-button" class="mic-button" type="button" aria-label="Start voice input" title="Voice input">
+        <button id="mic-button" class="mic-button" type="button" aria-label="Start voice input" title="Voice input" data-i18n-aria="voiceInputAria" data-i18n-title="voiceInput">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="9" y="3" width="6" height="12" rx="3"></rect>
             <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
           </svg>
         </button>
 
-        <textarea id="question-input" rows="1" maxlength="3000" placeholder="Ask about grape growing or upload a leaf photo…"></textarea>
+        <textarea id="question-input" rows="1" maxlength="3000" placeholder="Ask about grape growing or upload a leaf photo…" data-i18n-placeholder="placeholder"></textarea>
 
-        <button id="send-button" class="send-button" type="button" aria-label="Send message">
+        <button id="send-button" class="send-button" type="button" aria-label="Send message" data-i18n-aria="send">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="m4 4 17 8-17 8 3-8-3-8Z"></path>
             <path d="M7 12h14"></path>
           </svg>
-          <span class="sr-only">Send</span>
+          <span class="sr-only" data-i18n="send">Send</span>
         </button>
       </div>
 
@@ -178,36 +178,36 @@
     <div class="dialog-surface">
       <div class="dialog-header">
         <div>
-          <span class="eyebrow">OPTIONAL</span>
-          <h2>Field details</h2>
+          <span class="eyebrow" data-i18n="optional">OPTIONAL</span>
+          <h2 data-i18n="fieldDetails">Field details</h2>
         </div>
-        <button id="context-close" class="dialog-close" type="button" aria-label="Close field details">×</button>
+        <button id="context-close" class="dialog-close" type="button" aria-label="Close field details" data-i18n-aria="closeFieldDetails">×</button>
       </div>
-      <p class="dialog-copy">Add local context to make the guidance more relevant.</p>
+      <p class="dialog-copy" data-i18n="fieldDetailsCopy">Add local context to make the guidance more relevant.</p>
       <div class="context-grid">
         <label>
-          <span>Country</span>
+          <span data-i18n="country">Country</span>
           <input id="country-input" type="text" value="Kenya" autocomplete="country-name">
         </label>
         <label>
-          <span>Grape stage</span>
+          <span data-i18n="grapeStage">Grape stage</span>
           <select id="stage-input">
-            <option value="">Not specified</option>
-            <option value="budbreak">Budbreak</option>
-            <option value="flowering">Flowering</option>
-            <option value="fruit_set" selected>Fruit set</option>
-            <option value="veraison">Veraison</option>
-            <option value="harvest">Harvest</option>
-            <option value="postharvest">Postharvest</option>
-            <option value="dormant">Dormant</option>
+            <option value="" data-i18n="notSpecified">Not specified</option>
+            <option value="budbreak" data-i18n="stageBudbreak">Budbreak</option>
+            <option value="flowering" data-i18n="stageFlowering">Flowering</option>
+            <option value="fruit_set" selected data-i18n="stageFruitSet">Fruit set</option>
+            <option value="veraison" data-i18n="stageVeraison">Veraison</option>
+            <option value="harvest" data-i18n="stageHarvest">Harvest</option>
+            <option value="postharvest" data-i18n="stagePostharvest">Postharvest</option>
+            <option value="dormant" data-i18n="stageDormant">Dormant</option>
           </select>
         </label>
         <label class="wide-field">
-          <span>Recent weather</span>
-          <input id="weather-input" type="text" placeholder="Example: three days of warm, wet weather">
+          <span data-i18n="weather">Recent weather</span>
+          <input id="weather-input" type="text" placeholder="Example: three days of warm, wet weather" data-i18n-placeholder="weatherPlaceholder">
         </label>
       </div>
-      <button id="context-save" class="dialog-save" type="button">Use these details</button>
+      <button id="context-save" class="dialog-save" type="button" data-i18n="useDetails">Use these details</button>
     </div>
   </dialog>
 
