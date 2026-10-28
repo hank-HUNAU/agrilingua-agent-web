@@ -1010,9 +1010,11 @@ input:focus {
 .status {
   min-height: 17px;
   margin-top: 5px;
+  padding: 0 12px;
   color: var(--blue);
   font-size: 11px;
   line-height: 1.35;
+  text-align: center;
 }
 
 .status.error {
