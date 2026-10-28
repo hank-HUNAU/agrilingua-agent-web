@@ -16,6 +16,11 @@
   const homeVoiceButton = document.getElementById("home-voice-button");
   const imagePreview = document.getElementById("image-preview");
   const languageInput = document.getElementById("language-input");
+  const languageButton = document.getElementById("language-button");
+  const languageButtonLabel = document.getElementById("language-button-label");
+  const languageButtonCode = document.getElementById("language-button-code");
+  const languageMenu = document.getElementById("language-menu");
+  const languageOptions = Array.from(document.querySelectorAll(".language-option"));
   const countryInput = document.getElementById("country-input");
   const stageInput = document.getElementById("stage-input");
   const weatherInput = document.getElementById("weather-input");
@@ -78,6 +83,42 @@
 
   function currentText() {
     return uiText;
+  }
+
+  const languageMeta = {
+    en: { name: "English", code: "EN" },
+    zh: { name: "Chinese", code: "ZH" },
+    ja: { name: "Japanese", code: "JA" }
+  };
+
+  function updateLanguagePicker() {
+    const meta = languageMeta[languageInput.value] || languageMeta.en;
+    languageButtonLabel.textContent = meta.name;
+    languageButtonCode.textContent = meta.code;
+    languageButton.setAttribute("aria-label", `Answer language: ${meta.name}`);
+
+    for (const option of languageOptions) {
+      option.setAttribute(
+        "aria-selected",
+        String(option.dataset.language === languageInput.value)
+      );
+    }
+  }
+
+  function openLanguageMenu() {
+    languageMenu.hidden = false;
+    languageButton.setAttribute("aria-expanded", "true");
+  }
+
+  function closeLanguageMenu(focusButton = false) {
+    languageMenu.hidden = true;
+    languageButton.setAttribute("aria-expanded", "false");
+    if (focusButton) languageButton.focus();
+  }
+
+  function toggleLanguageMenu() {
+    if (languageMenu.hidden) openLanguageMenu();
+    else closeLanguageMenu();
   }
 
   function setStatus(message, isError) {
@@ -746,12 +787,69 @@
   newChatButton.addEventListener("click", clearConversation);
   languageInput.addEventListener("change", () => {
     renderQuickPrompts();
-    const languageNames = {
-      en: "English",
-      zh: "Chinese",
-      ja: "Japanese"
-    };
-    setStatus(`Answers will be provided in ${languageNames[languageInput.value]}.`);
+    updateLanguagePicker();
+    setStatus(
+      `Answers will be provided in ${languageMeta[languageInput.value].name}.`
+    );
+  });
+  languageButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleLanguageMenu();
+  });
+  languageButton.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      openLanguageMenu();
+      const selected =
+        languageOptions.find(
+          (option) => option.dataset.language === languageInput.value
+        ) || languageOptions[0];
+      selected.focus();
+    }
+  });
+  languageMenu.addEventListener("click", (event) => event.stopPropagation());
+  languageOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      languageInput.value = option.dataset.language;
+      languageInput.dispatchEvent(new Event("change", { bubbles: true }));
+      closeLanguageMenu(true);
+    });
+  });
+  languageMenu.addEventListener("keydown", (event) => {
+    const currentIndex = languageOptions.indexOf(document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeLanguageMenu(true);
+      return;
+    }
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+
+    event.preventDefault();
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowDown") {
+      nextIndex = (currentIndex + 1) % languageOptions.length;
+    } else if (event.key === "ArrowUp") {
+      nextIndex =
+        (currentIndex - 1 + languageOptions.length) % languageOptions.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = languageOptions.length - 1;
+    }
+    languageOptions[nextIndex].focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (
+      !languageMenu.hidden &&
+      !event.target.closest(".language-control")
+    ) {
+      closeLanguageMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !languageMenu.hidden) {
+      closeLanguageMenu(true);
+    }
   });
   contextButton.addEventListener("click", openContextDialog);
   contextClose.addEventListener("click", closeContextDialog);
@@ -772,6 +870,7 @@
   });
 
   languageInput.value = "en";
+  updateLanguagePicker();
   renderQuickPrompts();
   renderImagePreview();
   resizeTextarea();

@@ -35,14 +35,35 @@
           </svg>
           <span>Install</span>
         </button>
-        <label class="language-control">
+        <div class="language-control">
           <span class="language-label">Reply</span>
-          <select id="language-input" aria-label="Answer language">
+          <button id="language-button" class="language-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-menu">
+            <span id="language-button-label" class="language-current">English</span>
+            <span id="language-button-code" class="language-code" aria-hidden="true">EN</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m8 10 4 4 4-4"></path>
+            </svg>
+          </button>
+          <div id="language-menu" class="language-menu" role="listbox" aria-label="Answer language" hidden>
+            <button class="language-option" type="button" role="option" data-language="en" aria-selected="true">
+              <span>English</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+            </button>
+            <button class="language-option" type="button" role="option" data-language="zh" aria-selected="false">
+              <span>Chinese</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+            </button>
+            <button class="language-option" type="button" role="option" data-language="ja" aria-selected="false">
+              <span>Japanese</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+            </button>
+          </div>
+          <select id="language-input" class="language-native" aria-hidden="true" tabindex="-1">
             <option value="en" selected>English</option>
             <option value="zh">Chinese</option>
             <option value="ja">Japanese</option>
           </select>
-        </label>
+        </div>
         <button id="new-chat-button" class="new-chat-button" type="button" aria-label="Start a new chat">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 5v14M5 12h14"></path>
