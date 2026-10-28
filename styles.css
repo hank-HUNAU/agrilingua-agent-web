@@ -194,6 +194,7 @@ img {
 }
 
 .language-control {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -208,15 +209,112 @@ img {
   letter-spacing: 0.5px;
 }
 
-.language-control select {
-  max-width: 102px;
+.language-button {
+  min-width: 0;
+  max-width: 108px;
   height: 42px;
+  padding: 0 4px 0 7px;
   border: 0;
+  border-radius: 999px;
   outline: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   background: transparent;
   color: var(--navy);
   font-size: 12px;
   font-weight: 700;
+}
+
+.language-current {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.language-code {
+  display: none;
+}
+
+.language-button svg {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  transition: transform 160ms ease;
+}
+
+.language-button[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.language-native {
+  display: none;
+}
+
+.language-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 190px;
+  padding: 6px;
+  border: 1px solid rgba(27, 84, 159, 0.16);
+  border-radius: 17px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(7, 32, 78, 0.22);
+  backdrop-filter: blur(18px);
+  animation: menu-in 140ms ease-out;
+}
+
+.language-option {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.language-option:hover,
+.language-option:focus-visible {
+  outline: 0;
+  background: var(--surface-blue);
+}
+
+.language-option[aria-selected="true"] {
+  color: var(--blue);
+  background: var(--surface-blue);
+}
+
+.language-option svg {
+  width: 17px;
+  height: 17px;
+  color: var(--blue);
+  opacity: 0;
+}
+
+.language-option[aria-selected="true"] svg {
+  opacity: 1;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .new-chat-button {
@@ -1059,9 +1157,8 @@ input:focus {
     padding-left: 6px;
   }
 
-  .language-control select {
+  .language-button {
     max-width: 82px;
-    height: 42px;
     font-size: 11px;
   }
 
@@ -1179,9 +1276,17 @@ input:focus {
     display: none;
   }
 
-  .language-control select {
+  .language-button {
     max-width: 70px;
     font-size: 10px;
+  }
+
+  .language-current {
+    display: none;
+  }
+
+  .language-code {
+    display: inline;
   }
 
   .hero-heading {
