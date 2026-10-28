@@ -1186,6 +1186,95 @@ input:focus {
   font-weight: 750;
 }
 
+.history-dialog {
+  max-width: 560px;
+}
+
+.history-list {
+  max-height: min(52dvh, 430px);
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.history-list::-webkit-scrollbar {
+  display: none;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 5px;
+  align-items: stretch;
+}
+
+.history-open {
+  min-width: 0;
+  padding: 11px 13px;
+  border: 0;
+  border-radius: 15px;
+  color: var(--text);
+  background: #f2f5f9;
+  text-align: left;
+}
+
+.history-open strong,
+.history-open span {
+  display: block;
+}
+
+.history-open strong {
+  overflow: hidden;
+  color: var(--navy);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.history-open span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.history-delete {
+  width: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 13px;
+  color: var(--danger);
+  background: #f8eeee;
+  font-size: 19px;
+}
+
+.history-empty {
+  margin: 24px 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.history-clear {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 13px;
+  border: 0;
+  border-radius: 13px;
+  color: var(--danger);
+  background: #f8eeee;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.history-clear.is-confirming {
+  color: white;
+  background: var(--danger);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

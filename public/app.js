@@ -11,7 +11,6 @@
   const questionInput = document.getElementById("question-input");
   const sendButton = document.getElementById("send-button");
   const imageInput = document.getElementById("image-input");
-  const cameraInput = document.getElementById("camera-input");
   const voiceToggleButton = document.getElementById("voice-toggle");
   const imagePreview = document.getElementById("image-preview");
   const languageInput = document.getElementById("language-input");
@@ -35,6 +34,12 @@
   const newChatDialogClose = document.getElementById("new-chat-dialog-close");
   const newChatCancel = document.getElementById("new-chat-cancel");
   const newChatConfirm = document.getElementById("new-chat-confirm");
+  const historyButton = document.getElementById("history-button");
+  const historyDialog = document.getElementById("history-dialog");
+  const historyClose = document.getElementById("history-close");
+  const historyList = document.getElementById("history-list");
+  const historyEmpty = document.getElementById("history-empty");
+  const historyClear = document.getElementById("history-clear");
   const installButton = document.getElementById("install-button");
   const toolsButton = document.getElementById("tools-button");
   const composerTools = document.getElementById("composer-tools");
@@ -47,7 +52,11 @@
     progressTimer: 0,
     installPrompt: null,
     controller: null,
-    requestId: 0
+    requestId: 0,
+    historyId: "",
+    conversationMessages: [],
+    restoredImageUrls: [],
+    historyCreatedAt: 0
   };
 
   const prompts = {
@@ -112,6 +121,17 @@
       languageButtonAria: (name) => `Language: ${name}`,
       newChat: "New chat",
       newChatAria: "Start a new chat",
+      history: "History",
+      historyTitle: "Conversation history",
+      historyCopy: "Recent conversations are stored only on this device.",
+      historyEmpty: "No saved conversations yet.",
+      historyMessageCount: (count) => `${count} messages`,
+      historyUntitled: "Photo diagnosis",
+      historyStorageError: "Conversation history is unavailable on this device.",
+      deleteHistory: "Delete conversation",
+      deleteHistoryConfirm: "Delete this saved conversation?",
+      clearHistory: "Clear all history",
+      clearHistoryConfirm: "Delete all saved conversations?",
       newChatConfirmTitle: "Start a new chat?",
       newChatConfirmBody: "The current conversation and photos will be cleared. This cannot be undone.",
       cancel: "Cancel",
@@ -201,6 +221,17 @@
       languageButtonAria: (name) => `当前语言：${name}`,
       newChat: "新对话",
       newChatAria: "开始新对话",
+      history: "历史",
+      historyTitle: "对话历史",
+      historyCopy: "最近对话仅保存在当前设备。",
+      historyEmpty: "还没有保存的对话。",
+      historyMessageCount: (count) => `${count} 条消息`,
+      historyUntitled: "照片诊断",
+      historyStorageError: "当前设备无法使用对话历史。",
+      deleteHistory: "删除对话",
+      deleteHistoryConfirm: "删除这条已保存的对话？",
+      clearHistory: "清空全部历史",
+      clearHistoryConfirm: "删除全部已保存的对话？",
       newChatConfirmTitle: "开始新对话？",
       newChatConfirmBody: "当前对话和照片将被清空，且无法恢复。",
       cancel: "取消",
@@ -290,6 +321,17 @@
       languageButtonAria: (name) => `現在の言語：${name}`,
       newChat: "新しい会話",
       newChatAria: "新しい会話を開始",
+      history: "履歴",
+      historyTitle: "会話履歴",
+      historyCopy: "最近の会話はこの端末にのみ保存されます。",
+      historyEmpty: "保存された会話はまだありません。",
+      historyMessageCount: (count) => `${count} 件のメッセージ`,
+      historyUntitled: "写真診断",
+      historyStorageError: "この端末では会話履歴を利用できません。",
+      deleteHistory: "会話を削除",
+      deleteHistoryConfirm: "この保存済み会話を削除しますか？",
+      clearHistory: "履歴をすべて削除",
+      clearHistoryConfirm: "保存済みの会話をすべて削除しますか？",
       newChatConfirmTitle: "新しい会話を始めますか？",
       newChatConfirmBody: "現在の会話と写真は削除され、元に戻せません。",
       cancel: "キャンセル",
@@ -424,6 +466,7 @@
     renderImagePreview();
     renderQuickPrompts();
     refreshRenderedMessages();
+    if (historyDialog.open) void renderHistoryList();
   }
 
   function openLanguageMenu() {
@@ -465,6 +508,140 @@
   function updateSendState() {
     const hasContent = Boolean(questionInput.value.trim()) || state.images.length > 0;
     sendButton.disabled = state.busy || !hasContent;
+  }
+
+  const HISTORY_DB_NAME = "agrilingua_history";
+  const HISTORY_STORE_NAME = "conversations";
+  const HISTORY_LIMIT = 20;
+  let historyDbPromise = null;
+
+  function openHistoryDb() {
+    if (!("indexedDB" in window)) {
+      return Promise.reject(new Error("IndexedDB is unavailable."));
+    }
+    if (historyDbPromise) return historyDbPromise;
+
+    historyDbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(HISTORY_DB_NAME, 1);
+      request.addEventListener("upgradeneeded", () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+          const store = db.createObjectStore(HISTORY_STORE_NAME, {
+            keyPath: "id"
+          });
+          store.createIndex("updatedAt", "updatedAt");
+        }
+      });
+      request.addEventListener("success", () => resolve(request.result));
+      request.addEventListener("error", () => reject(request.error));
+      request.addEventListener("blocked", () =>
+        reject(new Error("History database is blocked."))
+      );
+    });
+
+    return historyDbPromise;
+  }
+
+  function idbRequest(request) {
+    return new Promise((resolve, reject) => {
+      request.addEventListener("success", () => resolve(request.result));
+      request.addEventListener("error", () => reject(request.error));
+    });
+  }
+
+  function idbTransactionDone(transaction) {
+    return new Promise((resolve, reject) => {
+      transaction.addEventListener("complete", resolve);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      transaction.addEventListener("abort", () =>
+        reject(transaction.error || new Error("History transaction aborted."))
+      );
+    });
+  }
+
+  async function saveCurrentConversation() {
+    if (state.conversationMessages.length === 0) return;
+
+    const now = Date.now();
+    if (!state.historyId) {
+      state.historyId = crypto.randomUUID();
+      state.historyCreatedAt = now;
+    }
+
+    const firstUserMessage = state.conversationMessages.find(
+      (message) => message.role === "user" && message.text
+    );
+    const title = (
+      firstUserMessage?.text?.trim() || currentText().historyUntitled
+    )
+      .replace(/\s+/g, " ")
+      .slice(0, 90);
+    const messages = state.conversationMessages.map((message) => ({
+      role: message.role,
+      text: String(message.text || ""),
+      isError: Boolean(message.isError),
+      createdAt: message.createdAt || now,
+      images: (message.images || [])
+        .map((image) => (image instanceof Blob ? image : image.file))
+        .filter(Boolean)
+    }));
+
+    const record = {
+      id: state.historyId,
+      title,
+      language: languageInput.value,
+      serverConversationId: state.conversationId,
+      messages,
+      createdAt: state.historyCreatedAt || now,
+      updatedAt: now
+    };
+
+    const db = await openHistoryDb();
+    const transaction = db.transaction(HISTORY_STORE_NAME, "readwrite");
+    transaction.objectStore(HISTORY_STORE_NAME).put(record);
+    await idbTransactionDone(transaction);
+    await pruneHistory(db);
+  }
+
+  async function pruneHistory(db) {
+    const readTransaction = db.transaction(HISTORY_STORE_NAME, "readonly");
+    const records = await idbRequest(
+      readTransaction.objectStore(HISTORY_STORE_NAME).getAll()
+    );
+    if (records.length <= HISTORY_LIMIT) return;
+
+    records.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt));
+    const deleteTransaction = db.transaction(HISTORY_STORE_NAME, "readwrite");
+    const store = deleteTransaction.objectStore(HISTORY_STORE_NAME);
+    for (const record of records.slice(HISTORY_LIMIT)) {
+      store.delete(record.id);
+    }
+    await idbTransactionDone(deleteTransaction);
+  }
+
+  async function listHistory() {
+    const db = await openHistoryDb();
+    const transaction = db.transaction(HISTORY_STORE_NAME, "readonly");
+    const records = await idbRequest(
+      transaction.objectStore(HISTORY_STORE_NAME).getAll()
+    );
+    return records.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt));
+  }
+
+  async function deleteHistoryRecord(id) {
+    const db = await openHistoryDb();
+    const transaction = db.transaction(HISTORY_STORE_NAME, "readwrite");
+    transaction.objectStore(HISTORY_STORE_NAME).delete(id);
+    await idbTransactionDone(transaction);
+    if (state.historyId === id) state.historyId = "";
+  }
+
+  async function clearHistoryRecords() {
+    const db = await openHistoryDb();
+    const transaction = db.transaction(HISTORY_STORE_NAME, "readwrite");
+    transaction.objectStore(HISTORY_STORE_NAME).clear();
+    await idbTransactionDone(transaction);
+    state.historyId = "";
   }
 
   function escapeHtml(value) {
@@ -624,6 +801,19 @@
     chatLog.appendChild(node);
     node.scrollIntoView({ behavior: "smooth", block: "start" });
     return node;
+  }
+
+  function appendConversationMessage(message) {
+    state.conversationMessages.push({
+      role: message.role,
+      text: String(message.text || ""),
+      images: message.images || [],
+      isError: Boolean(message.isError),
+      createdAt: Date.now()
+    });
+    void saveCurrentConversation().catch(() => {
+      // Keep the current conversation usable if local storage is unavailable.
+    });
   }
 
   function refreshRenderedMessages() {
@@ -850,7 +1040,6 @@
   async function addFiles(files) {
     const incoming = Array.from(files || []);
     imageInput.value = "";
-    cameraInput.value = "";
 
     if (state.images.length + incoming.length > maxImages) {
       setStatus(currentText().tooManyImages, true);
@@ -1049,12 +1238,21 @@
   }
 
   function clearConversation() {
+    if (state.conversationMessages.length > 0) {
+      void saveCurrentConversation().catch(() => {
+        // Clearing the active chat must remain available if history storage fails.
+      });
+    }
     state.requestId += 1;
     state.controller?.abort();
     state.controller = null;
     state.cancelVoiceSession?.();
     state.busy = false;
+    releaseRestoredImageUrls();
     state.conversationId = "";
+    state.historyId = "";
+    state.historyCreatedAt = 0;
+    state.conversationMessages = [];
     state.images.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     state.images = [];
     chatLog.replaceChildren();
@@ -1109,6 +1307,7 @@
   function hasActiveConversation() {
     return (
       chatLog.childElementCount > 0 ||
+      state.conversationMessages.length > 0 ||
       state.images.length > 0 ||
       Boolean(questionInput.value.trim())
     );
@@ -1131,6 +1330,155 @@
       newChatDialog.close();
     } else {
       newChatDialog.removeAttribute("open");
+    }
+  }
+
+  function releaseRestoredImageUrls() {
+    for (const url of state.restoredImageUrls) URL.revokeObjectURL(url);
+    state.restoredImageUrls = [];
+  }
+
+  function formatHistoryDate(record) {
+    const locale = languageMeta[record.language]?.htmlLang || "en";
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date(record.updatedAt || Date.now()));
+    } catch {
+      return new Date(record.updatedAt || Date.now()).toLocaleString();
+    }
+  }
+
+  async function restoreHistoryRecord(record) {
+    state.requestId += 1;
+    state.controller?.abort();
+    state.controller = null;
+    state.busy = false;
+    state.cancelVoiceSession?.();
+    closeComposerTools();
+    closeHistoryDialog();
+    releaseRestoredImageUrls();
+
+    state.images.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    state.images = [];
+    state.historyId = record.id;
+    state.historyCreatedAt = record.createdAt || Date.now();
+    state.conversationId = record.serverConversationId || "";
+    state.conversationMessages = Array.isArray(record.messages)
+      ? record.messages.map((message) => ({ ...message }))
+      : [];
+
+    if (languageMeta[record.language]) {
+      languageInput.value = record.language;
+      localStorage.setItem("agrilingua_language", record.language);
+      applyLocale(record.language);
+    }
+
+    chatLog.replaceChildren();
+    imagePreview.replaceChildren();
+    imagePreview.hidden = true;
+    questionInput.value = "";
+    resizeTextarea();
+    welcomePanel.hidden = state.conversationMessages.length > 0;
+    setStatus("");
+
+    for (const message of state.conversationMessages) {
+      const imageUrls = (message.images || []).map((image) => {
+        const url = URL.createObjectURL(image);
+        state.restoredImageUrls.push(url);
+        return url;
+      });
+      createMessage(
+        message.role === "user" ? "user" : "assistant",
+        message.text,
+        imageUrls,
+        Boolean(message.isError)
+      );
+    }
+
+    sendButton.disabled = false;
+    sendButton.setAttribute("aria-label", currentText().send);
+    updateSendState();
+  }
+
+  async function renderHistoryList() {
+    historyList.replaceChildren();
+    let records = [];
+    try {
+      records = await listHistory();
+    } catch {
+      historyEmpty.textContent = currentText().historyStorageError;
+      historyEmpty.hidden = false;
+      historyClear.hidden = true;
+      return;
+    }
+
+    historyEmpty.textContent = currentText().historyEmpty;
+    historyEmpty.hidden = records.length > 0;
+    historyClear.hidden = records.length === 0;
+
+    for (const record of records) {
+      const item = document.createElement("article");
+      item.className = "history-item";
+
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className = "history-open";
+      const title = document.createElement("strong");
+      title.textContent = record.title || currentText().historyUntitled;
+      const meta = document.createElement("span");
+      const languageName =
+        languageMeta[record.language]?.name || languageMeta.en.name;
+      meta.textContent = `${formatHistoryDate(record)} · ${currentText().historyMessageCount(record.messages?.length || 0)} · ${languageName}`;
+      openButton.append(title, meta);
+      openButton.addEventListener("click", () => {
+        void restoreHistoryRecord(record);
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "history-delete";
+      deleteButton.textContent = "×";
+      deleteButton.setAttribute("aria-label", currentText().deleteHistory);
+      deleteButton.addEventListener("click", async () => {
+        if (!window.confirm(currentText().deleteHistoryConfirm)) return;
+        try {
+          await deleteHistoryRecord(record.id);
+          await renderHistoryList();
+        } catch {
+          setStatus(currentText().historyStorageError, true);
+        }
+      });
+
+      item.append(openButton, deleteButton);
+      historyList.appendChild(item);
+    }
+  }
+
+  async function openHistoryDialog() {
+    closeComposerTools();
+    try {
+      await saveCurrentConversation();
+    } catch {
+      // Existing history may still be readable even if the latest save failed.
+    }
+    await renderHistoryList();
+
+    if (typeof historyDialog.showModal === "function") {
+      historyDialog.showModal();
+    } else {
+      historyDialog.setAttribute("open", "");
+    }
+  }
+
+  function closeHistoryDialog() {
+    if (typeof historyDialog.close === "function") {
+      historyDialog.close();
+    } else {
+      historyDialog.removeAttribute("open");
     }
   }
 
@@ -1280,7 +1628,14 @@
     closeComposerTools();
 
     const previews = state.images.map((item) => item.previewUrl);
-    createMessage("user", question || currentText().defaultPhotoPrompt, previews, false);
+    const outgoingText = question || currentText().defaultPhotoPrompt;
+    const outgoingImages = state.images.map((item) => item.file);
+    createMessage("user", outgoingText, previews, false);
+    appendConversationMessage({
+      role: "user",
+      text: outgoingText,
+      images: outgoingImages
+    });
 
     const typing = createTypingMessage();
     const stopProgress = startProgress(typing, state.images.length > 0);
@@ -1330,7 +1685,12 @@
       state.conversationId = payload.conversationId || "";
       typing.remove();
       setStatus("");
-      createMessage("assistant", payload.reply || currentText().networkError, [], false);
+      const replyText = payload.reply || currentText().networkError;
+      createMessage("assistant", replyText, [], false);
+      appendConversationMessage({
+        role: "assistant",
+        text: replyText
+      });
       state.images.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       state.images = [];
       renderImagePreview();
@@ -1345,6 +1705,11 @@
           ? currentText().timeout
           : interfaceError(error.message);
       createMessage("assistant", message, [], true);
+      appendConversationMessage({
+        role: "assistant",
+        text: message,
+        isError: true
+      });
       setStatus(message, true);
     } finally {
       stopProgress();
@@ -1362,9 +1727,6 @@
   imageInput.addEventListener("change", () => {
     addFiles(imageInput.files);
   });
-  cameraInput.addEventListener("change", () => {
-    addFiles(cameraInput.files);
-  });
   sendButton.addEventListener("click", sendMessage);
   newChatButton.addEventListener("click", () => {
     closeComposerTools();
@@ -1378,6 +1740,23 @@
   });
   newChatDialog.addEventListener("click", (event) => {
     if (event.target === newChatDialog) closeNewChatDialog();
+  });
+  historyButton.addEventListener("click", () => {
+    closeComposerTools();
+    void openHistoryDialog();
+  });
+  historyClose.addEventListener("click", closeHistoryDialog);
+  historyDialog.addEventListener("click", (event) => {
+    if (event.target === historyDialog) closeHistoryDialog();
+  });
+  historyClear.addEventListener("click", async () => {
+    if (!window.confirm(currentText().clearHistoryConfirm)) return;
+    try {
+      await clearHistoryRecords();
+      await renderHistoryList();
+    } catch {
+      setStatus(currentText().historyStorageError, true);
+    }
   });
   toolsButton.addEventListener("click", (event) => {
     event.stopPropagation();
