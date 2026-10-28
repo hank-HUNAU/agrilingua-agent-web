@@ -29,13 +29,18 @@ html {
   min-height: 100%;
   background: var(--bg);
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
+  position: fixed;
+  inset: 0;
   margin: 0;
   height: 100%;
+  width: 100%;
   min-height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
   color: var(--text);
   background:
     radial-gradient(circle at 8% -8%, rgba(88, 210, 255, 0.18), transparent 26rem),
@@ -90,6 +95,7 @@ img {
   max-width: 760px;
   height: var(--app-height, 100dvh);
   margin: 0 auto;
+  transform: translate3d(0, var(--app-offset-top, 0px), 0);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -99,8 +105,8 @@ img {
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 30;
   min-height: 64px;
   display: flex;
