@@ -75,50 +75,6 @@
 
     <main class="app-content">
       <section class="welcome" id="welcome-panel">
-        <div class="hero-card">
-          <div class="primary-actions" aria-label="Start a diagnosis" data-i18n-aria="actionsAria">
-            <label class="action-card action-primary" for="camera-input">
-              <span class="action-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M9 4 7.5 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4H9Z"></path>
-                  <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-              </span>
-              <span>
-                <strong data-i18n="takePhoto">Take photo</strong>
-                <small data-i18n="rearCamera">Use the rear camera</small>
-              </span>
-            </label>
-
-            <label class="action-card" for="image-input">
-              <span class="action-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                  <circle cx="8.5" cy="9" r="1.5"></circle>
-                  <path d="m4 17 5-5 4 4 2-2 5 5"></path>
-                </svg>
-              </span>
-              <span>
-                <strong data-i18n="gallery">Gallery</strong>
-                <small data-i18n="upToTwo">Up to two photos</small>
-              </span>
-            </label>
-
-            <button id="home-voice-button" class="action-card" type="button">
-              <span class="action-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <rect x="9" y="3" width="6" height="12" rx="3"></rect>
-                  <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
-                </svg>
-              </span>
-              <span>
-                <strong data-i18n="voice">Voice</strong>
-                <small data-i18n="speakQuestion">Speak your question</small>
-              </span>
-            </button>
-          </div>
-        </div>
-
         <div class="prompt-section">
           <div class="section-heading">
             <span data-i18n="tryAsking">Try asking</span>
@@ -131,17 +87,32 @@
       <section id="chat-log" class="chat-log" aria-live="polite"></section>
     </main>
 
-    <section id="composer" class="composer home-mode" aria-label="Message composer" data-i18n-aria="composerAria">
+    <section id="composer" class="composer" aria-label="Message composer" data-i18n-aria="composerAria">
       <div id="image-preview" class="image-preview" hidden></div>
 
-      <div class="composer-tools">
-        <label id="composer-photo-button" class="tool-button" for="image-input" title="Add a photo" data-i18n-title="addPhoto">
+      <div id="composer-tools" class="composer-tools" aria-label="Message tools" data-i18n-aria="toolsPanelAria" hidden>
+        <label class="tool-button" for="camera-input" title="Take a photo" data-i18n-title="takePhoto">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 4 7.5 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4H9Z"></path>
             <circle cx="12" cy="13" r="4"></circle>
           </svg>
-          <span data-i18n="photo">Photo</span>
+          <span data-i18n="takePhoto">Take photo</span>
         </label>
+        <label class="tool-button" for="image-input" title="Choose from gallery" data-i18n-title="gallery">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="4" width="24" height="16" rx="3"></rect>
+            <circle cx="8.5" cy="9" r="1.5"></circle>
+            <path d="m4 17 5-5 4 4 2-2 5 5"></path>
+          </svg>
+          <span data-i18n="gallery">Gallery</span>
+        </label>
+        <button id="mic-button" class="tool-button mic-button" type="button" aria-label="Start voice input" title="Voice input" data-i18n-aria="voiceInputAria" data-i18n-title="voiceInput">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="3" width="6" height="12" rx="3"></rect>
+            <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
+          </svg>
+          <span data-i18n="voice">Voice</span>
+        </button>
         <button id="context-button" class="tool-button" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7h16M7 12h10M9 17h6"></path>
@@ -152,10 +123,9 @@
       </div>
 
       <div class="message-row">
-        <button id="mic-button" class="mic-button" type="button" aria-label="Start voice input" title="Voice input" data-i18n-aria="voiceInputAria" data-i18n-title="voiceInput">
+        <button id="tools-button" class="tools-button" type="button" aria-label="More tools" aria-expanded="false" aria-controls="composer-tools" data-i18n-aria="moreTools">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="9" y="3" width="6" height="12" rx="3"></rect>
-            <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
+            <path d="M12 5v14M5 12h14"></path>
           </svg>
         </button>
 
