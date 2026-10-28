@@ -119,8 +119,6 @@
       upToTwo: "Up to two photos",
       voice: "Voice",
       speakQuestion: "Speak your question",
-      tryAsking: "Quick questions",
-      privateDefault: "Private by default",
       composerAria: "Message composer",
       photo: "Photo",
       addPhoto: "Add a photo",
@@ -210,8 +208,6 @@
       upToTwo: "最多两张照片",
       voice: "语音",
       speakQuestion: "说出你的问题",
-      tryAsking: "快捷问题",
-      privateDefault: "默认保护隐私",
       composerAria: "消息输入区",
       photo: "照片",
       addPhoto: "添加照片",
@@ -301,8 +297,6 @@
       upToTwo: "最大2枚",
       voice: "音声",
       speakQuestion: "質問を話す",
-      tryAsking: "すぐに質問",
-      privateDefault: "プライバシー保護",
       composerAria: "メッセージ入力欄",
       photo: "写真",
       addPhoto: "写真を追加",
@@ -902,6 +896,7 @@
 
     function finishTranscript() {
       awaitingResult = false;
+      document.documentElement.classList.remove("voice-holding");
       setRecordingState(false);
       setComposerMode("text", true);
       if (transcript.trim()) {
@@ -946,6 +941,7 @@
         recognitionEnded = true;
         holdInProgress = false;
         awaitingResult = false;
+        document.documentElement.classList.remove("voice-holding");
         setRecordingState(false);
         if (suppressEnd) {
           suppressEnd = false;
@@ -966,6 +962,7 @@
       if (!holdInProgress) return;
       if (!recognition) {
         holdInProgress = false;
+        document.documentElement.classList.remove("voice-holding");
         setComposerMode("text", true);
         setStatus(currentText().voiceFailed, true);
         return;
@@ -1002,6 +999,7 @@
       awaitingResult = false;
       suppressEnd = false;
       transcript = "";
+      document.documentElement.classList.add("voice-holding");
       questionInput.value = "";
       updateSendState();
       clearTimeout(holdTimer);
@@ -1013,6 +1011,7 @@
       const duration = performance.now() - holdStartedAt;
       holdInProgress = false;
       clearTimeout(holdTimer);
+      document.documentElement.classList.remove("voice-holding");
 
       if (cancelled) {
         suppressEnd = holdTriggered;
@@ -1063,6 +1062,10 @@
 
     holdButton.addEventListener("pointercancel", () => {
       endVoiceHold(true);
+    });
+
+    holdButton.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
     });
 
     holdButton.addEventListener("click", (event) => {
@@ -1341,11 +1344,9 @@
   }
 
   imageInput.addEventListener("change", () => {
-    closeComposerTools();
     addFiles(imageInput.files);
   });
   cameraInput.addEventListener("change", () => {
-    closeComposerTools();
     addFiles(cameraInput.files);
   });
   sendButton.addEventListener("click", sendMessage);
