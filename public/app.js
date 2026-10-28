@@ -12,7 +12,6 @@
   const sendButton = document.getElementById("send-button");
   const imageInput = document.getElementById("image-input");
   const cameraInput = document.getElementById("camera-input");
-  const micButton = document.getElementById("mic-button");
   const voiceToggleButton = document.getElementById("voice-toggle");
   const holdButton = document.getElementById("hold-button");
   const textComposer = document.getElementById("text-composer");
@@ -34,7 +33,6 @@
   const contextDialog = document.getElementById("context-dialog");
   const contextClose = document.getElementById("context-close");
   const contextSave = document.getElementById("context-save");
-  const contextSummary = document.getElementById("context-summary");
   const installButton = document.getElementById("install-button");
   const toolsButton = document.getElementById("tools-button");
   const composerTools = document.getElementById("composer-tools");
@@ -168,7 +166,6 @@
       audioHint: "Listen to the field guidance",
       audioOpen: "Open audio",
       defaultPhotoPrompt: "Analyze these grape photos and give me the next steps.",
-      languageChanged: (name) => `Language changed. The app and replies will use ${name}.`,
       emptyInput: "Enter a question or add at least one photo.",
       tooManyImages: "You can add at most two photos.",
       invalidImage: "Please choose JPG, PNG, WebP, HEIC, HEIF, or AVIF images only.",
@@ -183,8 +180,6 @@
       installed: "AgriLingua was installed successfully.",
       iosInstall: "In Safari, tap Share, then choose Add to Home Screen.",
       browserInstall: "Open your browser menu and choose Install app or Add to Home screen.",
-      countryNotSet: "Country not set",
-      stageNotSet: "Stage not set",
       removePhoto: (index) => `Remove photo ${index}`,
       photoReady: (index) => `Photo ${index} ready to upload`,
       progressUpload: "Uploading and preparing your photos…",
@@ -262,7 +257,6 @@
       audioHint: "收听田间建议",
       audioOpen: "打开语音",
       defaultPhotoPrompt: "请分析这些葡萄照片，并告诉我下一步该怎么做。",
-      languageChanged: (name) => `语言已切换。界面和回答将使用${name}。`,
       emptyInput: "请输入问题或至少添加一张照片。",
       tooManyImages: "最多只能添加两张照片。",
       invalidImage: "请选择 JPG、PNG、WebP、HEIC、HEIF 或 AVIF 图片。",
@@ -277,8 +271,6 @@
       installed: "AgriLingua 安装成功。",
       iosInstall: "在 Safari 中点击分享，然后选择“添加到主屏幕”。",
       browserInstall: "打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。",
-      countryNotSet: "国家未填写",
-      stageNotSet: "生育期未填写",
       removePhoto: (index) => `移除第 ${index} 张照片`,
       photoReady: (index) => `第 ${index} 张照片待上传`,
       progressUpload: "正在上传并准备照片…",
@@ -356,7 +348,6 @@
       audioHint: "圃場でのアドバイスを聞く",
       audioOpen: "音声を開く",
       defaultPhotoPrompt: "このブドウの写真を分析し、次の対応を教えてください。",
-      languageChanged: (name) => `言語を変更しました。アプリと回答は${name}で表示されます。`,
       emptyInput: "質問を入力するか、写真を1枚以上追加してください。",
       tooManyImages: "写真は最大2枚までです。",
       invalidImage: "JPG、PNG、WebP、HEIC、HEIF、AVIF画像を選択してください。",
@@ -371,8 +362,6 @@
       installed: "AgriLingua をインストールしました。",
       iosInstall: "Safari で共有をタップし、「ホーム画面に追加」を選んでください。",
       browserInstall: "ブラウザメニューから「アプリをインストール」または「ホーム画面に追加」を選んでください。",
-      countryNotSet: "国が未設定",
-      stageNotSet: "生育ステージが未設定",
       removePhoto: (index) => `写真 ${index} を削除`,
       photoReady: (index) => `写真 ${index} のアップロード準備完了`,
       progressUpload: "写真をアップロードして準備しています…",
@@ -438,7 +427,6 @@
 
     updateLanguagePicker();
     updateComposerModeAria();
-    updateContextSummary();
     renderImagePreview();
     renderQuickPrompts();
     refreshRenderedMessages();
@@ -910,8 +898,6 @@
     function setRecordingState(active) {
       holdButton.classList.toggle("is-recording", active);
       holdButton.setAttribute("aria-pressed", String(active));
-      micButton.classList.toggle("recording", active);
-      micButton.setAttribute("aria-pressed", String(active));
     }
 
     function finishTranscript() {
@@ -974,8 +960,6 @@
       });
 
       state.recognition = recognition;
-    } else {
-      micButton.hidden = true;
     }
 
     function startSpeechCapture() {
@@ -1066,12 +1050,6 @@
       setStatus("");
     });
 
-    micButton.addEventListener("click", () => {
-      closeComposerTools();
-      setComposerMode("voice");
-      setStatus("");
-    });
-
     holdButton.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       holdButton.setPointerCapture?.(event.pointerId);
@@ -1114,24 +1092,6 @@
     holdButton.focus();
   }
 
-  const stageLabelKeys = {
-    "": "stageNotSet",
-    budbreak: "stageBudbreak",
-    flowering: "stageFlowering",
-    fruit_set: "stageFruitSet",
-    veraison: "stageVeraison",
-    harvest: "stageHarvest",
-    postharvest: "stagePostharvest",
-    dormant: "stageDormant"
-  };
-
-  function updateContextSummary() {
-    const country = countryInput.value.trim();
-    const stage = currentText()[stageLabelKeys[stageInput.value] || "stageNotSet"];
-    const parts = [country || currentText().countryNotSet, stage];
-    contextSummary.textContent = parts.join(" · ");
-  }
-
   function interfaceError(message) {
     const value = String(message || "").trim();
     if (!value) return currentText().networkError;
@@ -1153,7 +1113,6 @@
   }
 
   function openContextDialog() {
-    updateContextSummary();
     if (typeof contextDialog.showModal === "function") {
       contextDialog.showModal();
     } else {
@@ -1390,7 +1349,10 @@
     addFiles(cameraInput.files);
   });
   sendButton.addEventListener("click", sendMessage);
-  newChatButton.addEventListener("click", clearConversation);
+  newChatButton.addEventListener("click", () => {
+    closeComposerTools();
+    clearConversation();
+  });
   toolsButton.addEventListener("click", (event) => {
     event.stopPropagation();
     closeLanguageMenu();
@@ -1399,7 +1361,7 @@
   languageInput.addEventListener("change", () => {
     localStorage.setItem("agrilingua_language", languageInput.value);
     applyLocale(languageInput.value);
-    setStatus(currentText().languageChanged(languageMeta[languageInput.value].name));
+    setStatus("");
   });
   languageButton.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -1481,10 +1443,6 @@
   contextDialog.addEventListener("click", (event) => {
     if (event.target === contextDialog) closeContextDialog();
   });
-  [countryInput, stageInput, weatherInput].forEach((input) => {
-    input.addEventListener("input", updateContextSummary);
-    input.addEventListener("change", updateContextSummary);
-  });
   questionInput.addEventListener("input", () => {
     resizeTextarea();
     updateSendState();
@@ -1506,6 +1464,5 @@
   setupInstallPrompt();
   registerServiceWorker();
   setupViewportHeight();
-  updateContextSummary();
 })();
 
