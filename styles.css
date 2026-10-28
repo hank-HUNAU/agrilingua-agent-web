@@ -818,6 +818,12 @@ img {
   padding: 0;
 }
 
+.voice-toggle.is-listening {
+  color: white;
+  background: var(--blue);
+  animation: record-pulse 1s infinite alternate;
+}
+
 .entry-area {
   min-width: 0;
   position: relative;
