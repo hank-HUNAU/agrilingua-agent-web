@@ -186,6 +186,28 @@
     </div>
   </dialog>
 
+  <dialog id="new-chat-dialog" class="context-dialog new-chat-dialog">
+    <div class="dialog-surface">
+      <div class="dialog-header">
+        <div>
+          <h2 data-i18n="newChatConfirmTitle">Start a new chat?</h2>
+        </div>
+        <button id="new-chat-dialog-close" class="dialog-close" type="button" aria-label="Close" data-i18n-aria="cancel">
+          ×
+        </button>
+      </div>
+      <p class="dialog-copy" data-i18n="newChatConfirmBody">
+        The current conversation and photos will be cleared.
+      </p>
+      <div class="dialog-actions">
+        <button id="new-chat-cancel" class="dialog-secondary" type="button" data-i18n="cancel">Cancel</button>
+        <button id="new-chat-confirm" class="dialog-save dialog-confirm" type="button" data-i18n="confirmNewChat">
+          Start new chat
+        </button>
+      </div>
+    </div>
+  </dialog>
+
   <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
   <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif,.heic,.heif,.avif" multiple hidden>
 
