@@ -144,7 +144,7 @@
       useDetails: "Use these details",
       voiceInput: "Voice input",
       voiceInputAria: "Start voice input",
-      placeholder: "Ask about grape growing or upload a leaf photo…",
+      placeholder: "Type something",
       send: "Send",
       sending: "Analyzing…",
       listening: "Listening…",
@@ -230,7 +230,7 @@
       useDetails: "使用这些信息",
       voiceInput: "语音输入",
       voiceInputAria: "开始语音输入",
-      placeholder: "询问葡萄种植问题，或上传叶片照片……",
+      placeholder: "输入内容…",
       send: "发送",
       sending: "分析中…",
       listening: "正在聆听…",
@@ -316,7 +316,7 @@
       useDetails: "この情報を使用",
       voiceInput: "音声入力",
       voiceInputAria: "音声入力を開始",
-      placeholder: "ブドウ栽培について質問するか、葉の写真をアップロード…",
+      placeholder: "入力してください…",
       send: "送信",
       sending: "分析中…",
       listening: "聞き取り中…",
@@ -449,6 +449,11 @@
   function setStatus(message, isError) {
     status.textContent = message || "";
     status.classList.toggle("error", Boolean(isError));
+  }
+
+  function updateSendState() {
+    const hasContent = Boolean(questionInput.value.trim()) || state.images.length > 0;
+    sendButton.disabled = state.busy || !hasContent;
   }
 
   function escapeHtml(value) {
@@ -667,6 +672,7 @@
         questionInput.value = prompt.text;
         questionInput.focus();
         resizeTextarea();
+        updateSendState();
       });
       quickPrompts.appendChild(button);
     }
@@ -696,6 +702,7 @@
       item.append(img, remove);
       imagePreview.appendChild(item);
     });
+    updateSendState();
   }
 
   function imageKind(file) {
@@ -857,6 +864,7 @@
       }
       questionInput.value = transcript.trim();
       resizeTextarea();
+      updateSendState();
     });
 
     recognition.addEventListener("end", () => {
@@ -909,9 +917,9 @@
     setStatus("");
     resizeTextarea();
     welcomePanel.hidden = false;
-    sendButton.disabled = false;
     sendButton.setAttribute("aria-label", currentText().send);
     newChatButton.setAttribute("aria-label", currentText().newChatAria);
+    updateSendState();
     questionInput.focus();
   }
 
@@ -1041,7 +1049,7 @@
 
     const requestId = ++state.requestId;
     state.busy = true;
-    sendButton.disabled = true;
+    updateSendState();
     sendButton.setAttribute("aria-label", currentText().sending);
     newChatButton.setAttribute("aria-label", currentText().cancelAnalysisAria);
     setStatus("");
@@ -1105,6 +1113,7 @@
       renderImagePreview();
       questionInput.value = "";
       resizeTextarea();
+      updateSendState();
     } catch (error) {
       if (requestId !== state.requestId) return;
       typing.remove();
@@ -1120,7 +1129,7 @@
       if (state.controller === controller) state.controller = null;
       if (requestId === state.requestId) {
         state.busy = false;
-        sendButton.disabled = false;
+        updateSendState();
         sendButton.setAttribute("aria-label", currentText().send);
         newChatButton.setAttribute("aria-label", currentText().newChatAria);
       }
@@ -1231,7 +1240,10 @@
     input.addEventListener("input", updateContextSummary);
     input.addEventListener("change", updateContextSummary);
   });
-  questionInput.addEventListener("input", resizeTextarea);
+  questionInput.addEventListener("input", () => {
+    resizeTextarea();
+    updateSendState();
+  });
   questionInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();

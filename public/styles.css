@@ -902,8 +902,10 @@ input:focus {
 }
 
 .send-button:disabled {
-  opacity: 0.5;
-  cursor: wait;
+  color: #8294ad;
+  background: #e7edf6;
+  opacity: 1;
+  cursor: default;
   box-shadow: none;
 }
 
