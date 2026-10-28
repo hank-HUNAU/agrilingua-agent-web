@@ -149,16 +149,6 @@ img {
   text-overflow: ellipsis;
 }
 
-.brand p {
-  margin: 3px 0 0;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.2;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .topbar-actions {
   flex: 0 0 auto;
   display: flex;
@@ -1159,11 +1149,6 @@ input:focus {
     font-size: 16px;
   }
 
-  .brand p {
-    max-width: 126px;
-    font-size: 9.5px;
-  }
-
   .topbar-actions {
     gap: 5px;
   }
@@ -1253,7 +1238,6 @@ input:focus {
 }
 
 @media (max-width: 370px) {
-  .brand p,
   .secure-note,
   .context-summary {
     display: none;
