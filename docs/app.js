@@ -1198,6 +1198,7 @@
       frame = requestAnimationFrame(() => {
         frame = 0;
         const visibleHeight = viewport?.height || window.innerHeight;
+        const visibleTop = Math.max(0, Math.floor(viewport?.offsetTop || 0));
         const desktop = window.matchMedia("(min-width: 600px)").matches;
         const shellHeight = Math.max(
           320,
@@ -1207,15 +1208,21 @@
           "--app-height",
           `${shellHeight}px`
         );
+        document.documentElement.style.setProperty(
+          "--app-offset-top",
+          `${visibleTop}px`
+        );
 
         const keyboardHeight = Math.max(0, window.innerHeight - visibleHeight);
         const editorFocused = document.activeElement?.matches?.(
-          "textarea, input"
+          "textarea, input, select"
         );
         const keyboardOpen = Boolean(
           viewport &&
             editorFocused &&
-            (keyboardHeight > 120 || visibleHeight < window.innerHeight * 0.82)
+            (keyboardHeight > 120 ||
+              visibleTop > 60 ||
+              visibleHeight < window.innerHeight * 0.82)
         );
         document.documentElement.classList.toggle(
           "keyboard-open",
@@ -1231,15 +1238,20 @@
     viewport?.addEventListener("scroll", sync);
     window.addEventListener("resize", sync);
     window.addEventListener("orientationchange", () => setTimeout(sync, 120));
-    questionInput.addEventListener("focus", () => {
+    document.addEventListener("focusin", (event) => {
+      if (!event.target?.matches?.("textarea, input, select")) return;
       sync();
-      setTimeout(sync, 120);
-      setTimeout(sync, 320);
+      setTimeout(sync, 80);
+      setTimeout(sync, 250);
+      setTimeout(sync, 500);
     });
-    questionInput.addEventListener("blur", () => {
-      setTimeout(sync, 120);
-      setTimeout(sync, 320);
+    document.addEventListener("focusout", (event) => {
+      if (!event.target?.matches?.("textarea, input, select")) return;
+      setTimeout(sync, 80);
+      setTimeout(sync, 250);
+      setTimeout(sync, 500);
     });
+    window.addEventListener("pageshow", sync);
     sync();
   }
 
