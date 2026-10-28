@@ -160,9 +160,9 @@ img {
 .new-chat-button,
 .language-control {
   min-height: 44px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 999px;
-  background: var(--surface);
+  background: var(--surface-blue);
   color: var(--navy);
 }
 
@@ -494,7 +494,7 @@ img {
   min-width: 0;
   min-height: 48px;
   padding: 8px 9px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 999px;
   color: var(--text);
   background: var(--surface-blue);
@@ -701,9 +701,9 @@ img {
   gap: 5px;
   margin-bottom: 8px;
   padding: 7px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
+  background: #f7f9fc;
 }
 
 .tool-button {
@@ -741,6 +741,19 @@ img {
   text-overflow: ellipsis;
 }
 
+.quick-block {
+  grid-column: 1 / -1;
+  padding-top: 7px;
+  border-top: 1px solid rgba(217, 229, 244, 0.75);
+}
+
+.quick-title {
+  margin: 0 2px 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+}
+
 .image-preview {
   display: flex;
   gap: 8px;
@@ -775,6 +788,7 @@ img {
   gap: 7px;
 }
 
+.voice-toggle,
 .tools-button,
 .mic-button,
 .send-button {
@@ -787,20 +801,88 @@ img {
   place-items: center;
 }
 
+.voice-toggle,
 .tools-button {
-  border: 1px solid var(--border);
+  border: 0;
   color: var(--blue);
-  background: white;
+  background: #edf3fa;
 }
 
+.voice-toggle svg,
 .tools-button svg {
   width: 20px;
   height: 20px;
   transition: transform 160ms ease;
 }
 
+.tools-button {
+  flex: 0 0 auto;
+}
+
 .tools-button[aria-expanded="true"] svg {
   transform: rotate(45deg);
+}
+
+.voice-toggle {
+  padding: 0;
+}
+
+.entry-area {
+  min-width: 0;
+  position: relative;
+}
+
+.hold-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--navy);
+  background: #edf3fa;
+  user-select: none;
+  touch-action: none;
+}
+
+.hold-button svg {
+  width: 18px;
+  height: 18px;
+  color: var(--blue);
+}
+
+.hold-copy strong,
+.hold-copy small {
+  display: block;
+  line-height: 1.2;
+}
+
+.hold-copy strong {
+  font-size: 12px;
+}
+
+.hold-copy small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.hold-button.is-recording {
+  color: white;
+  background: var(--blue);
+}
+
+.hold-button.is-recording svg,
+.hold-button.is-recording .hold-copy small {
+  color: white;
+}
+
+.text-composer {
+  position: relative;
+  min-width: 0;
 }
 
 .composer-tools .mic-button {
@@ -818,6 +900,19 @@ img {
   background: var(--surface-blue);
   font-size: 10px;
   font-weight: 750;
+}
+
+.text-composer .send-button {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+
+.text-composer textarea {
+  padding-right: 45px;
 }
 
 .composer-tools .mic-button svg {
@@ -855,11 +950,11 @@ textarea {
   max-height: 128px;
   padding: 11px 13px;
   resize: none;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 15px;
   outline: none;
   color: var(--text);
-  background: white;
+  background: #edf3fa;
   font-size: 16px;
   line-height: 1.38;
   overflow-y: auto;
@@ -990,10 +1085,10 @@ input:focus {
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 50%;
   color: var(--navy);
-  background: white;
+  background: var(--surface-blue);
   font-size: 23px;
   line-height: 1;
 }
