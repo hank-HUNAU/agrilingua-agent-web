@@ -826,13 +826,13 @@ img {
 .hold-button {
   width: 100%;
   min-height: 44px;
-  padding: 5px 10px;
+  padding: 5px 8px;
   border: 0;
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--navy);
   background: #edf3fa;
   touch-action: none;
@@ -864,20 +864,11 @@ html.voice-holding .app-shell * {
   color: var(--blue);
 }
 
-.hold-copy strong,
-.hold-copy small {
+.hold-copy strong {
   display: block;
   line-height: 1.2;
-}
-
-.hold-copy strong {
-  font-size: 12px;
-}
-
-.hold-copy small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .hold-button.is-recording {
@@ -885,8 +876,7 @@ html.voice-holding .app-shell * {
   background: var(--blue);
 }
 
-.hold-button.is-recording svg,
-.hold-button.is-recording .hold-copy small {
+.hold-button.is-recording svg {
   color: white;
 }
 
