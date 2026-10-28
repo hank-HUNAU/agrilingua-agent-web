@@ -33,6 +33,10 @@
   const contextDialog = document.getElementById("context-dialog");
   const contextClose = document.getElementById("context-close");
   const contextSave = document.getElementById("context-save");
+  const newChatDialog = document.getElementById("new-chat-dialog");
+  const newChatDialogClose = document.getElementById("new-chat-dialog-close");
+  const newChatCancel = document.getElementById("new-chat-cancel");
+  const newChatConfirm = document.getElementById("new-chat-confirm");
   const installButton = document.getElementById("install-button");
   const toolsButton = document.getElementById("tools-button");
   const composerTools = document.getElementById("composer-tools");
@@ -111,6 +115,10 @@
       languageButtonAria: (name) => `Language: ${name}`,
       newChat: "New chat",
       newChatAria: "Start a new chat",
+      newChatConfirmTitle: "Start a new chat?",
+      newChatConfirmBody: "The current conversation and photos will be cleared. This cannot be undone.",
+      cancel: "Cancel",
+      confirmNewChat: "Start new chat",
       cancelAnalysisAria: "Cancel analysis and start a new chat",
       actionsAria: "Start a diagnosis",
       takePhoto: "Take photo",
@@ -200,6 +208,10 @@
       languageButtonAria: (name) => `当前语言：${name}`,
       newChat: "新对话",
       newChatAria: "开始新对话",
+      newChatConfirmTitle: "开始新对话？",
+      newChatConfirmBody: "当前对话和照片将被清空，且无法恢复。",
+      cancel: "取消",
+      confirmNewChat: "开始新对话",
       cancelAnalysisAria: "取消分析并开始新对话",
       actionsAria: "开始诊断",
       takePhoto: "拍照",
@@ -289,6 +301,10 @@
       languageButtonAria: (name) => `現在の言語：${name}`,
       newChat: "新しい会話",
       newChatAria: "新しい会話を開始",
+      newChatConfirmTitle: "新しい会話を始めますか？",
+      newChatConfirmBody: "現在の会話と写真は削除され、元に戻せません。",
+      cancel: "キャンセル",
+      confirmNewChat: "新しい会話を始める",
       cancelAnalysisAria: "分析を中止して新しい会話を開始",
       actionsAria: "診断を開始",
       takePhoto: "写真を撮る",
@@ -1168,6 +1184,34 @@
     }
   }
 
+  function hasActiveConversation() {
+    return (
+      chatLog.childElementCount > 0 ||
+      state.images.length > 0 ||
+      Boolean(questionInput.value.trim())
+    );
+  }
+
+  function openNewChatDialog() {
+    if (!hasActiveConversation()) {
+      clearConversation();
+      return;
+    }
+    if (typeof newChatDialog.showModal === "function") {
+      newChatDialog.showModal();
+    } else {
+      newChatDialog.setAttribute("open", "");
+    }
+  }
+
+  function closeNewChatDialog() {
+    if (typeof newChatDialog.close === "function") {
+      newChatDialog.close();
+    } else {
+      newChatDialog.removeAttribute("open");
+    }
+  }
+
   function setupInstallPrompt() {
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -1389,7 +1433,16 @@
   sendButton.addEventListener("click", sendMessage);
   newChatButton.addEventListener("click", () => {
     closeComposerTools();
+    openNewChatDialog();
+  });
+  newChatDialogClose.addEventListener("click", closeNewChatDialog);
+  newChatCancel.addEventListener("click", closeNewChatDialog);
+  newChatConfirm.addEventListener("click", () => {
+    closeNewChatDialog();
     clearConversation();
+  });
+  newChatDialog.addEventListener("click", (event) => {
+    if (event.target === newChatDialog) closeNewChatDialog();
   });
   toolsButton.addEventListener("click", (event) => {
     event.stopPropagation();

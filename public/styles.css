@@ -1160,6 +1160,30 @@ input:focus {
   box-shadow: 0 9px 22px rgba(18, 104, 232, 0.24);
 }
 
+.new-chat-dialog {
+  max-width: 460px;
+}
+
+.dialog-actions {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.dialog-actions .dialog-save {
+  margin-top: 0;
+}
+
+.dialog-secondary {
+  min-height: 48px;
+  border: 0;
+  border-radius: 15px;
+  color: var(--navy);
+  background: var(--surface-blue);
+  font-weight: 750;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
