@@ -848,6 +848,9 @@ img {
   pointer-events: none;
 }
 
+html.voice-holding,
+html.voice-holding body,
+html.voice-holding body *,
 html.voice-holding .app-shell,
 html.voice-holding .app-shell * {
   -webkit-touch-callout: none !important;
