@@ -49,19 +49,46 @@
 
   const prompts = {
     zh: [
-      "我的葡萄叶片有黄色斑点，应该怎么处理？",
-      "葡萄修剪一般什么时候进行？",
-      "如何在下雨前预防白粉病？"
+      {
+        label: "叶片黄斑",
+        text: "我的葡萄叶片有黄色斑点，应该怎么处理？"
+      },
+      {
+        label: "修剪时机",
+        text: "葡萄修剪一般什么时候进行？"
+      },
+      {
+        label: "雨后防病",
+        text: "如何在下雨前预防白粉病？"
+      }
     ],
     en: [
-      "What should I do about yellow spots on my grape leaves?",
-      "When should I prune my grapevines?",
-      "How can I prevent powdery mildew before rain?"
+      {
+        label: "Yellow spots",
+        text: "What should I do about yellow spots on my grape leaves?"
+      },
+      {
+        label: "Pruning time",
+        text: "When should I prune my grapevines?"
+      },
+      {
+        label: "Rainy care",
+        text: "How can I prevent powdery mildew before rain?"
+      }
     ],
     ja: [
-      "ブドウの葉に黄色い斑点があります。どうすればいいですか？",
-      "ブドウの剪定はいつ行うべきですか？",
-      "雨の前にうどん粉病を防ぐにはどうすればよいですか？"
+      {
+        label: "葉の黄斑",
+        text: "ブドウの葉に黄色い斑点があります。どうすればいいですか？"
+      },
+      {
+        label: "剪定時期",
+        text: "ブドウの剪定はいつ行うべきですか？"
+      },
+      {
+        label: "雨後の病害予防",
+        text: "雨の前にうどん粉病を防ぐにはどうすればよいですか？"
+      }
     ]
   };
 
@@ -91,7 +118,7 @@
       upToTwo: "Up to two photos",
       voice: "Voice",
       speakQuestion: "Speak your question",
-      tryAsking: "Try asking",
+      tryAsking: "Quick questions",
       privateDefault: "Private by default",
       composerAria: "Message composer",
       photo: "Photo",
@@ -175,7 +202,7 @@
       upToTwo: "最多两张照片",
       voice: "语音",
       speakQuestion: "说出你的问题",
-      tryAsking: "试着问",
+      tryAsking: "快捷问题",
       privateDefault: "默认保护隐私",
       composerAria: "消息输入区",
       photo: "照片",
@@ -259,7 +286,7 @@
       upToTwo: "最大2枚",
       voice: "音声",
       speakQuestion: "質問を話す",
-      tryAsking: "質問例",
+      tryAsking: "すぐに質問",
       privateDefault: "プライバシー保護",
       composerAria: "メッセージ入力欄",
       photo: "写真",
@@ -613,9 +640,10 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "quick-prompt";
-      button.textContent = prompt;
+      button.textContent = prompt.label;
+      button.setAttribute("aria-label", prompt.text);
       button.addEventListener("click", () => {
-        questionInput.value = prompt;
+        questionInput.value = prompt.text;
         questionInput.focus();
         resizeTextarea();
       });
