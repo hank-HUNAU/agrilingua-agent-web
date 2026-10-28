@@ -13,7 +13,6 @@
   const imageInput = document.getElementById("image-input");
   const cameraInput = document.getElementById("camera-input");
   const micButton = document.getElementById("mic-button");
-  const homeVoiceButton = document.getElementById("home-voice-button");
   const imagePreview = document.getElementById("image-preview");
   const languageInput = document.getElementById("language-input");
   const languageButton = document.getElementById("language-button");
@@ -34,7 +33,8 @@
   const contextSave = document.getElementById("context-save");
   const contextSummary = document.getElementById("context-summary");
   const installButton = document.getElementById("install-button");
-  const composer = document.getElementById("composer");
+  const toolsButton = document.getElementById("tools-button");
+  const composerTools = document.getElementById("composer-tools");
 
   const state = {
     images: [],
@@ -124,6 +124,8 @@
       photo: "Photo",
       addPhoto: "Add a photo",
       fieldDetails: "Field details",
+      moreTools: "More tools",
+      toolsPanelAria: "Message tools",
       optional: "OPTIONAL",
       closeFieldDetails: "Close field details",
       fieldDetailsCopy: "Add local context to make the guidance more relevant.",
@@ -208,6 +210,8 @@
       photo: "照片",
       addPhoto: "添加照片",
       fieldDetails: "田间信息",
+      moreTools: "更多功能",
+      toolsPanelAria: "消息功能",
       optional: "可选",
       closeFieldDetails: "关闭田间信息",
       fieldDetailsCopy: "添加当地信息，让建议更准确。",
@@ -292,6 +296,8 @@
       photo: "写真",
       addPhoto: "写真を追加",
       fieldDetails: "圃場情報",
+      moreTools: "その他の機能",
+      toolsPanelAria: "メッセージ機能",
       optional: "任意",
       closeFieldDetails: "圃場情報を閉じる",
       fieldDetailsCopy: "地域情報を追加すると、より適切な提案になります。",
@@ -423,6 +429,21 @@
   function toggleLanguageMenu() {
     if (languageMenu.hidden) openLanguageMenu();
     else closeLanguageMenu();
+  }
+
+  function openComposerTools() {
+    composerTools.hidden = false;
+    toolsButton.setAttribute("aria-expanded", "true");
+  }
+
+  function closeComposerTools() {
+    composerTools.hidden = true;
+    toolsButton.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleComposerTools() {
+    if (composerTools.hidden) openComposerTools();
+    else closeComposerTools();
   }
 
   function setStatus(message, isError) {
@@ -816,7 +837,6 @@
 
     if (!SpeechRecognition) {
       micButton.hidden = true;
-      homeVoiceButton.hidden = true;
       return;
     }
 
@@ -868,9 +888,8 @@
       }
     }
 
-    micButton.addEventListener("click", startRecognition);
-    homeVoiceButton.addEventListener("click", () => {
-      welcomePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    micButton.addEventListener("click", () => {
+      closeComposerTools();
       startRecognition();
     });
   }
@@ -890,7 +909,6 @@
     setStatus("");
     resizeTextarea();
     welcomePanel.hidden = false;
-    composer.classList.add("home-mode");
     sendButton.disabled = false;
     sendButton.setAttribute("aria-label", currentText().send);
     newChatButton.setAttribute("aria-label", currentText().newChatAria);
@@ -1028,7 +1046,7 @@
     newChatButton.setAttribute("aria-label", currentText().cancelAnalysisAria);
     setStatus("");
     welcomePanel.hidden = true;
-    composer.classList.remove("home-mode");
+    closeComposerTools();
 
     const previews = state.images.map((item) => item.previewUrl);
     createMessage("user", question || currentText().defaultPhotoPrompt, previews, false);
@@ -1109,10 +1127,21 @@
     }
   }
 
-  imageInput.addEventListener("change", () => addFiles(imageInput.files));
-  cameraInput.addEventListener("change", () => addFiles(cameraInput.files));
+  imageInput.addEventListener("change", () => {
+    closeComposerTools();
+    addFiles(imageInput.files);
+  });
+  cameraInput.addEventListener("change", () => {
+    closeComposerTools();
+    addFiles(cameraInput.files);
+  });
   sendButton.addEventListener("click", sendMessage);
   newChatButton.addEventListener("click", clearConversation);
+  toolsButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    closeLanguageMenu();
+    toggleComposerTools();
+  });
   languageInput.addEventListener("change", () => {
     localStorage.setItem("agrilingua_language", languageInput.value);
     applyLocale(languageInput.value);
@@ -1120,6 +1149,7 @@
   });
   languageButton.addEventListener("click", (event) => {
     event.stopPropagation();
+    closeComposerTools();
     toggleLanguageMenu();
   });
   languageButton.addEventListener("keydown", (event) => {
@@ -1171,13 +1201,27 @@
     ) {
       closeLanguageMenu();
     }
+    if (
+      !composerTools.hidden &&
+      !event.target.closest("#composer-tools") &&
+      !event.target.closest("#tools-button")
+    ) {
+      closeComposerTools();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !languageMenu.hidden) {
       closeLanguageMenu(true);
     }
+    if (event.key === "Escape" && !composerTools.hidden) {
+      closeComposerTools();
+      toolsButton.focus();
+    }
   });
-  contextButton.addEventListener("click", openContextDialog);
+  contextButton.addEventListener("click", () => {
+    closeComposerTools();
+    openContextDialog();
+  });
   contextClose.addEventListener("click", closeContextDialog);
   contextSave.addEventListener("click", closeContextDialog);
   contextDialog.addEventListener("click", (event) => {
