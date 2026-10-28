@@ -88,7 +88,7 @@ img {
   position: relative;
   width: 100%;
   max-width: 760px;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -694,6 +694,10 @@ img {
   backdrop-filter: blur(18px) saturate(1.25);
 }
 
+.keyboard-open .composer {
+  padding-bottom: 8px;
+}
+
 .composer-tools {
   min-width: 0;
   display: grid;
@@ -1176,7 +1180,7 @@ input:focus {
   }
 
   .app-shell {
-    height: calc(100dvh - 36px);
+    height: var(--app-height, calc(100dvh - 36px));
     overflow: hidden;
     border: 1px solid rgba(18, 55, 104, 0.1);
     border-radius: 30px;
